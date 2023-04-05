@@ -1,0 +1,27 @@
+{
+    "manifest_version": 3,
+    "name": "RSU to AMO",
+    "description": "Autofill AMO form using RSU account",
+    "version": "1.0",
+
+    "permissions": [
+        "tabs",
+        "tabGroups"
+    ],
+
+    "background": {
+        "service_worker": "background.js"
+    },
+
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.rsu.ma/rsu/personnal-space",
+                "https://www.amotadamon.ma/Formulaire_Inscription_Ar.aspx"
+            ],
+            "js": ["script.js"]
+        }
+    ],
+
+    "action": {}
+}
