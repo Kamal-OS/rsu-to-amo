@@ -6,7 +6,12 @@
 
     "permissions": [
         "tabs",
-        "tabGroups"
+        "tabGroups",
+        "scripting"
+    ],
+    
+    "host_permissions": [
+        "https://www.amotadamon.ma/Formulaire_Inscription_Ar.aspx"
     ],
 
     "background": {
