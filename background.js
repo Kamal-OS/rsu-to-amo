@@ -3,13 +3,21 @@ const AMO_URL = "https://www.amotadamon.ma/Formulaire_Inscription_Ar.aspx"
 
 chrome.runtime.onInstalled.addListener(details => {
     if (details.reason === "install") {
-        const welcomeURL = 'https://kamal-os.github.io/RSU-to-AMO/welcome/index.html'
-        chrome.tabs.create({url: welcomeURL})   
+        const welcomePage = chrome.runtime.getURL("./welcome/index.html")
+        chrome.tabs.create({url: welcomePage})   
     }
 })
 
 chrome.action.onClicked.addListener(async (tab) => {
-    if (tab.url === RSU_URL && tab.status === 'complete') {
+    if (tab.url === RSU_URL) {
+        await chrome.tabs.reload(tab.id)
+        
+        chrome.tabs.onUpdated.addListener((onUpdatedTabId, onUpdatedChangeInfo, onUpdatedTab) => {
+            if (onUpdatedTabId == tab.id && onUpdatedChangeInfo.status === "complete") {
+                console.log('complete')
+            }
+        })
+
         const families = await chrome.tabs.sendMessage(
             tabID = tab.id,
             message = {
