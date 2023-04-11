@@ -34,7 +34,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     setInterval(() => {
                         div.click()
                     }, 1000)
-                }
+                },
+                world: "MAIN"
             })
         }
     }
