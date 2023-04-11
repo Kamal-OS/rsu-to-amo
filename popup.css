@@ -57,7 +57,7 @@ li {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
-    background-color: #f1f1f1;
+    background-color: #e0e2ff;
 }
 
 .demo-btn {
@@ -67,7 +67,7 @@ li {
     background-color: lightgray;
 
     padding: 1em 2em;
-    margin: 1rem 0;
+    margin: .75rem 0;
     
     font-size: .75rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
