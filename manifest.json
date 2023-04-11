@@ -13,7 +13,6 @@
 
     "host_permissions": [
         "https://*.rsu.ma/rsu/*",
-        "file:///C:/Users/dev/Desktop/%D8%A7%D9%84%D9%81%D8%B6%D8%A7%D8%A1%20%D8%A7%D9%84%D8%B4%D8%AE%D8%B5%D9%8A.html",
         "https://*.rnp.ma/pre-registration-ui/#/*",
         "https://*.amotadamon.ma/*"
     ],
@@ -25,7 +24,7 @@
 
     "content_scripts": [
         {
-            "js": ["./scripts/amo.js"],
+            "js": ["./scripts/content/amo.js"],
             "matches": [
                 "https://*.amotadamon.ma/*"
             ]

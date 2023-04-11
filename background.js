@@ -20,7 +20,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
             chrome.scripting.executeScript({
                 target: {tabId: tab.id},
-                files: ["./scripts/rsu-ui.js"]
+                files: ["./scripts/inject/rsu-ui.js"]
             })
         }
     }
@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.type === "rsu-ui-ready") {
         chrome.scripting.executeScript({
             target: {tabId: sender.tab.id},
-            files: ["./scripts/rsu-data.js"]
+            files: ["./scripts/inject/rsu-data.js"]
         })
     }
 

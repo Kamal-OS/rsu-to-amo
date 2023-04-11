@@ -6,12 +6,81 @@
 
 body {
     font-size: .8rem;
+    background-color: rgb(255, 246, 246);
 }
 
 p {
     font-size: .9rem;
 }
 
+p span {
+    font-weight: 600;
+}
+
 li {
     padding-bottom: .5em;
+    font-weight: 600;
+}
+
+.collapsible {
+    background-color: #4CA9DF;
+    color: white;
+    cursor: pointer;
+    width: 100%;
+    padding: .5em 1em;
+    border: none;
+    text-align: right;
+    outline: none;
+    font-size: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.active,
+.collapsible:hover {
+    background-color: #292E91;
+}
+
+.collapsible::before {
+    content: '\002B';
+    color: white;
+    font-weight: bold;
+    float: left;
+    margin-left: 5px;
+}
+
+.active::before {
+    content: "\2212";
+}
+
+.content {
+    padding: 0 18px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: #f1f1f1;
+}
+
+.demo-btn {
+    display: inline-block;
+    border: none;
+    
+    background-color: lightgray;
+
+    padding: 1em 2em;
+    margin: 1rem 0;
+    
+    font-size: .75rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+    text-align: center;
+    
+    cursor: pointer;
+}
+
+.demo-btn:hover {
+    background-color: rgb(227, 227, 227);
+}
+
+div.demo {
+    display: grid;
 }
