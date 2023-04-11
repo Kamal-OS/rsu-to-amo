@@ -4,7 +4,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type !== "amo-form-insert") return
 
     const family = message.data
-    console.log(family)
     
     //// master
     /// get html fields of family master
@@ -105,7 +104,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         resolve()
     })
     .then(() => {
-        console.log("message sent: amo-form-done")
         chrome.runtime.sendMessage(sender.id,
             {
                 type: "amo-form-done"
