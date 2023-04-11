@@ -3,3 +3,15 @@
     color: #314d3e;
     direction: rtl !important;
 }
+
+body {
+    font-size: .8rem;
+}
+
+p {
+    font-size: .9rem;
+}
+
+li {
+    padding-bottom: .5em;
+}

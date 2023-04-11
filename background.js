@@ -33,6 +33,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     const div = document.querySelector("div.heading")
                     setInterval(() => {
                         div.click()
+                        console.log("Clicked!")
                     }, 1000)
                 },
                 world: "MAIN"
