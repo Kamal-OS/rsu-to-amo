@@ -1,0 +1,63 @@
+/* Radio inputs */
+
+div.gender-input-wrap {
+    cursor: default;
+    width: 100%;
+    display: block;
+}
+
+div.gender-input {
+    margin-left: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    padding-left: 0;
+}
+
+div.gender-input input {
+    margin-left: 0.3125rem;
+    position: static;
+    font-family: Cairo, sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+    font-size: 13px;
+}
+
+div.gender-input label {
+    font-family: Cairo, sans-serif !important;
+    direction: rtl !important;
+    margin-bottom: 0;
+    display: inline-block;
+
+}
+
+
+
+/* Submit button */
+
+#amo-btn {
+    opacity: .7
+}
+
+#amo-btn span {
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+
+#amo-btn:enabled span:after {
+    content: '\00ab';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -5px;
+    transition: 0.5s;
+}
+
+#amo-btn:enabled:hover span {
+    padding-right: 15px;
+}
+
+#amo-btn:enabled:hover span:after {
+    opacity: 1;
+    right: 0;
+}
