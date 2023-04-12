@@ -7,8 +7,7 @@
     "permissions": [
         "tabs",
         "scripting",
-        "tabGroups",
-        "storage"
+        "tabGroups"
     ],
 
     "host_permissions": [
