@@ -13,6 +13,7 @@
 
     "host_permissions": [
         "https://*.rsu.ma/rsu/*",
+        "",
         "https://*.rnp.ma/pre-registration-ui/#/*",
         "https://*.amotadamon.ma/*"
     ],

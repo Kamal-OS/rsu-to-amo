@@ -4,9 +4,10 @@ let COMPLETE_ONCE = false
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const RSU_URL = "https://www.rsu.ma/rsu/personnal-space"
+    const RSU_DEMO = "/demo/demo.html"
     const RNP_URL = "https://www.rnp.ma/pre-registration-ui/#/"
 
-    if (tab.url === RSU_URL) {
+    if (tab.url === RSU_URL || tab.url.endsWith(RSU_DEMO)) {
         if (COMPLETE_ONCE && tab.status === "loading") {
             COMPLETE_ONCE = false
         }
