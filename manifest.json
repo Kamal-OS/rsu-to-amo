@@ -13,7 +13,7 @@
 
     "host_permissions": [
         "https://*.rsu.ma/rsu/*",
-        "",
+        "https://*.github.io/*/demo/demo.html",
         "https://*.rnp.ma/pre-registration-ui/#/*",
         "https://*.amotadamon.ma/*"
     ],

@@ -28,7 +28,7 @@ for (let i = 0; i < coll.length; i++) {
 
 // demp
 document.querySelector(".demo-btn").addEventListener("click", () => {
-    const demoPage = chrome.runtime.getURL('./demo/demo.html')
+    const demoPage = "https://kamal-os.github.io/RSU-to-AMO/demo/demo.html"
     chrome.tabs.create({
         url: demoPage
     })
