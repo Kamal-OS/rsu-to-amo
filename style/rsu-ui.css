@@ -1,0 +1,143 @@
+/* General */
+
+th.text-center.align-middle.largeTh {
+    width: fit-content;
+}
+
+
+/* Radio inputs */
+
+div.gender-input-wrap {
+    cursor: default;
+    width: 100%;
+    display: block;
+}
+
+div.gender-input {
+    margin-left: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    padding-left: 0;
+}
+
+div.gender-input input {
+    margin-left: 0.3125rem;
+    position: static;
+    font-family: Cairo, sans-serif !important;
+    direction: rtl !important;
+    text-align: right !important;
+    font-size: 13px;
+}
+
+div.gender-input label {
+    font-family: Cairo, sans-serif !important;
+    direction: rtl !important;
+    margin-bottom: 0;
+    display: inline-block;
+
+}
+
+
+
+/* Submit button */
+
+#amo-btn {
+    opacity: .7
+}
+
+#amo-btn span {
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+}
+
+#amo-btn:enabled span:after {
+    content: '\00ab';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -5px;
+    transition: 0.5s;
+}
+
+#amo-btn:enabled:hover span {
+    padding-right: 15px;
+}
+
+#amo-btn:enabled:hover span:after {
+    opacity: 1;
+    right: 0;
+}
+
+
+/* Toggle Switch */
+
+.switch {
+    font-size: 1rem;
+
+    position: relative;
+    display: inline-block;
+}
+
+.slider {
+    --width: 4em;
+    --height: 2em;
+
+    position: absolute;
+    cursor: pointer;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    width: var(--width);
+    height: var(--height);
+
+    background-color: #ccc;
+    transition: all 0.3s linear;
+}
+
+.slider.round {
+    border-radius: var(--width);
+}
+
+.slider::before {
+    --diameter: 1em;
+    --left-space: .2em;
+
+    position: absolute;
+    content: "";
+
+    left: var(--left-space);
+    top: var(--left-space);
+
+    /* width: 2em;
+    height: 2em; */
+    width: var(--diameter);
+    height: var(--diameter);
+
+    background-color: #fff;
+    transition: all 0.3s linear;
+}
+
+.slider.round::before {
+    border-radius: 50%;
+}
+
+input[type="checkbox"]:checked+.slider::before {
+    --translate-X: calc(var(--width) - var(--diameter) - var(--left-space) * 2);
+
+    translate: translateX(--translate-X)
+}
+
+input[type="checkbox"]:checked+.slider {
+    background-color: #7983ff;
+}
+
+input[type="checkbox"] {
+    /* display: none;
+    opacity: 0;
+    width: 0;
+    height: 0; */
+}

@@ -26,7 +26,7 @@ for (let i = 0; i < coll.length; i++) {
   });
 }
 
-// demp
+// demo
 document.querySelector(".demo-btn").addEventListener("click", () => {
     const demoPage = "https://kamal-os.github.io/RSU-to-AMO/demo/demo.html"
     chrome.tabs.create({

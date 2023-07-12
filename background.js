@@ -7,7 +7,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const RSU_DEMO = "/demo/demo.html"
     const RNP_URL = "https://www.rnp.ma/pre-registration-ui/#/"
 
-    if (tab.url === RSU_URL || tab.url.endsWith(RSU_DEMO)) {
+    if (tab.url.startsWith(RSU_URL) || tab.url.endsWith(RSU_DEMO)) {
         if (COMPLETE_ONCE && tab.status === "loading") {
             COMPLETE_ONCE = false
         }
@@ -16,7 +16,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
             chrome.scripting.insertCSS({
                 target: {tabId: tab.id},
-                files: ["rsu-ui.css"]
+                files: ["./style/rsu-ui.css"]
             })
 
             chrome.scripting.executeScript({
@@ -25,7 +25,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             })
         }
     }
-    // Prevent RNP inactive state detection
+
+    // Prevent RNP inactive state detection (Auto-click)
     else if (tab.url.startsWith(RNP_URL)) {
         if (tab.status === "complete") {
             chrome.scripting.executeScript({
@@ -43,17 +44,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 })
 
-const AMO_URL = "https://www.amotadamon.ma/Formulaire_Inscription_Ar.aspx"
+const AMO_URL = "https://www.amotadamon.ma/"
 let data = {
     families: null,
     window: null,
     groupId: null
 }
-Object.seal(data)
+Object.seal(data) // static object: can't add or remove properties
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.type === "rsu-ui-ready") {
-        chrome.scripting.executeScript({
+        await chrome.scripting.executeScript({
             target: {tabId: sender.tab.id},
             files: ["./scripts/inject/rsu-data.js"]
         })
@@ -109,6 +110,13 @@ async function injectData(isFirst) {
         windowId: data.window.id
     })
 
+    await chrome.scripting.executeScript({
+        target: {tabId: amoTab.id},
+        func: () => {
+            document.querySelector("a.intro-btn-bl").click()
+        }
+    })
+
     if (isFirst) {
         // create a tab group
         data.groupId = await chrome.tabs.group({
@@ -136,7 +144,7 @@ async function injectData(isFirst) {
     }
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-        if (tab.id === amoTab.id && tab.url === AMO_URL && tab.status === "complete") {
+        if (tab.id === amoTab.id && tab.url.startsWith(AMO_URL + "Formulaire_Inscription_Ar.aspx") && tab.status === "complete") {
             const family = data.families.shift()
             chrome.tabs.sendMessage(amoTab.id,
                 {
