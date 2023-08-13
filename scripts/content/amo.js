@@ -4,10 +4,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type !== "amo-form-insert") return
 
     const family = message.data
+
+    // move spouse to master if master is null
+    if (!family.master) {
+        family.master = family.spouse
+        family.spouse = null
+    }
     
     //// master
     /// get html fields of family master
-    const master = {
+    const masterFields = {
         idcs: document.querySelector("#ctl00_ContentPlaceHolder1_Txt_IDCS"),
         birthdate: {
             year: document.querySelector("#Cbo_Annees_Naiss"),
@@ -20,22 +26,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     /// set html fields of family master
     // idcs
-    master.idcs.value = family.master.idcs.toString()
+    masterFields.idcs.value = family.master.idcs.toString()
     // brithdate
-    master.birthdate.year.value = family.master.birthdate.year.toString()
-    master.birthdate.month.value = Number(family.master.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
-    master.birthdate.day.value = Number(family.master.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+    masterFields.birthdate.year.value = family.master.birthdate.year.toString()
+    masterFields.birthdate.month.value = Number(family.master.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+    masterFields.birthdate.day.value = Number(family.master.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
     // gender (default to male)
-    master.gender.querySelector(`input[value=${family.master.gender}]`).click()
+    masterFields.gender.querySelector(`input[value=${family.master.gender}]`).click()
     // is married?
-    master.isMarried.querySelector(`input[value="${family.spouse ? 1 : 0}"]`).click()
+    masterFields.isMarried.querySelector(`input[value="${family.spouse ? 1 : 0}"]`).click()
 
     //// spouse
     if (family.spouse) {
         // wait until spouse fileds are loaded then set them
         const tempInterval = setInterval(() => {
             /// get spouse fields
-            const spouse = {
+            const spouseFields = {
                 idcs: document.querySelector("#ctl00_ContentPlaceHolder1_Txt_IDCS_Conjoint"),
                 birthdate: {
                     year: document.querySelector("#Cbo_Annees_Naiss_Conjoint"),
@@ -46,17 +52,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
 
             // check
-            if (!spouse.idcs || spouse.idcs.value) return
+            if (!spouseFields.idcs || spouseFields.idcs.value) return
 
             /// set spouse fields
             // idcs
-            spouse.idcs.value = family.spouse.idcs.toString()
+            spouseFields.idcs.value = family.spouse.idcs.toString()
             // brithdate
-            spouse.birthdate.year.value = family.spouse.birthdate.year
-            spouse.birthdate.month.value = Number(family.spouse.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
-            spouse.birthdate.day.value = Number(family.spouse.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+            spouseFields.birthdate.year.value = family.spouse.birthdate.year
+            spouseFields.birthdate.month.value = Number(family.spouse.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+            spouseFields.birthdate.day.value = Number(family.spouse.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
             // gender (default to female)
-            spouse.gender.querySelector(`input[value="${family.spouse.gender}"]`).click()
+            spouseFields.gender.querySelector(`input[value="${family.spouse.gender}"]`).click()
 
             // stop
             clearInterval(tempInterval)
@@ -69,7 +75,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // wait until child fileds are loaded (after add btn click) then set them
             const tempInterval = setInterval(() => {
                 /// get child fields
-                const childField = {
+                const childFields = {
                     idcs: document.querySelector('[id*="Txt_IDCS_Enfant_Ajt"]'),
                     birthdate: {
                         year: document.querySelector("#Cbo_Annees_Naiss_Enfant_Ajt"),
@@ -80,17 +86,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 }
 
                 // check
-                if (!childField.idcs || childField.idcs.value) return
+                if (!childFields.idcs || childFields.idcs.value) return
 
                 /// set child fields
                 // idcs
-                childField.idcs.value = child.idcs.toString()
+                childFields.idcs.value = child.idcs.toString()
                 // brithdate
-                childField.birthdate.year.value = child.birthdate.year
-                childField.birthdate.month.value = Number(child.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
-                childField.birthdate.day.value = Number(child.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+                childFields.birthdate.year.value = child.birthdate.year
+                childFields.birthdate.month.value = Number(child.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+                childFields.birthdate.day.value = Number(child.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
                 // gender (default to male)
-                childField.gender.querySelector(`input[value="${child.gender}"]`).click()
+                childFields.gender.querySelector(`input[value="${child.gender}"]`).click()
 
                 /// fields are ready just click the add button
                 chrome.runtime.sendMessage(sender.id, {

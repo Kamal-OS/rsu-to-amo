@@ -14,26 +14,41 @@
     }
     Object.seal(person)
 
-    const family = {
-        master: null,
-        spouse: null,
-        children: []
-    }
-    Object.seal(family)
+    const families = {
+        // رب الاسرة، زوج (ة) رب الأسرة، ابن أو ابنة رب الأسرة القاصرين
+        head: null,
+        // ابن أو ابنة رب الأسرة البالغين
+        adults: [],
+        // أب أو أم رب الأسرة
+        parents_head: null,
+        // أب أو أم زوج(ة) رب الأسرة
+        parents_spouse: null,
+        // أخ أو أخت رب الأسرة
+        siblings: []
 
-    const families = []
-    
+        // TODO: حفيد(ة)، آخر
+    }
+
+    // TODO: index not used
     for (const [index, row] of rows.entries()) {
-        const columns = row.querySelectorAll("td")
+        // all cells in row
+        const cells = row.querySelectorAll("td")
+        
+        // skip, if row is disabled
+        if (!cells[0].querySelector("input").checked) {
+            continue
+        }
 
         Object.keys(person).forEach((key, index) => {
-            let value = columns[index].innerText
-            // gender column
+            // skip first cell (used for just active state)
+            let value = cells[index + 1].innerText
+
             if (key === "gender") {
-                value = columns[index].querySelector("input:checked").value
+                value = cells[index + 1].querySelector("input:checked").value
             }
+
             person[key] = value.trim()
-        });
+        }); // ; is OBLIGATORY
 
         // set birthdate as object of {year,month,day}
         (() => {
@@ -45,60 +60,118 @@
             }
         })()
 
-        /*
-            This code assume the following:
-                - spouse of the master is always the second entry if exist
-                - children are sorted from youngest to oldest
-                - adult children are always single
-        */
+        const ageFromBirthdate = (birthdate) => {
+            const dateOfBirth = new Date(
+                birthdate.year,
+                (birthdate.month === "9999" ? 1 : birthdate.month) - 1,
+                birthdate.day === "9999" ? 1 : birthdate.day
+            )
+
+            const ageDifMs = Date.now() - dateOfBirth
+            const ageDate = new Date(ageDifMs)
+            return Math.abs(ageDate.getUTCFullYear() - 1970)
+        }
+
+        const family = {
+            master: null,
+            spouse: null,
+            children: []
+        }
+        Object.seal(family)
+
         switch (person.relation) {
             case "رب الأسرة": {
-                family.master = {...person}
+                family.master = { ...person }
+                families.head = { ...family }
+
                 break
             }
+
             case "زوج (ة) رب الأسرة": {
-                family.spouse = {...person}
+                families.head.spouse = { ...person }
+
                 break
             }
+
             case "ابن أو ابنة رب الأسرة": {
-                const age = (() => {
-                    const dateOfBirth = new Date(
-                        person.birthdate.year,
-                        (person.birthdate.month === "9999" ? 1 : person.birthdate.month) - 1,
-                        person.birthdate.day === "9999" ? 1 : person.birthdate.day
-                    )
+                const age = ageFromBirthdate(person.birthdate)
 
-                    const ageDifMs = Date.now() - dateOfBirth
-                    const ageDate = new Date(ageDifMs)
-                    return Math.abs(ageDate.getUTCFullYear() - 1970)
-                })()
-
-                // add child to the master of family
                 if (age < 18) {
-                    if (families.length) {
-                        families[0].children.push({...person}) // for safety even useless
+                    families.head.children.push({ ...person })
+                }
+                else {
+                    // TODO: adult with own family
+                    // spouse: اخر
+                    // children: حفيد
+                    family.master = { ...person }
+                    families.adults.push({ ...family })
+                }
+
+                break
+            }
+
+            case "أب أو أم رب الأسرة": {
+                if (person.gender === "M") {
+                    if (families.parents_head) {
+                        families.parents_head.master = { ...person }
                     }
                     else {
-                        family.children.push({...person})
+                        family.master = { ...person }
+                        families.parents_head = { ...family }
                     }
-                    break
                 }
-                
-                families.push({...family})
-            
-                family.master = {...person},
-                family.spouse = null,
-                family.children = []
+                else {
+                    if (families.parents_head) {
+                        families.parents_head.spouse = { ...person }
+                    }
+                    else {
+                        family.spouse = { ...person }
+                        families.parents_head = { ...family }
+                    }
+                }
 
                 break
             }
-        }
-        
-        if (index >= (rows.length - 1)) {
-            families.push({...family})
+
+            case "أب أو أم زوج(ة) رب الأسرة": {
+                if (person.gender === "M") {
+                    if (families.parents_spouse) {
+                        families.parents_spouse.master = { ...person }
+                    }
+                    else {
+                        family.master = { ...person }
+                        families.parents_spouse = { ...family }
+                    }
+                }
+                else {
+                    if (families.parents_spouse) {
+                        families.parents_spouse.spouse = { ...person }
+                    }
+                    else {
+                        family.spouse = { ...person }
+                        families.parents_spouse = { ...family }
+                    }
+                }
+
+                break
+            }
+
+            // TODO: only single adults
+            case "أخ أو أخت رب الأسرة": {
+                const age = ageFromBirthdate(person.birthdate)
+
+                if (age >= 18) {
+                    family.master = { ...person }
+                    families.siblings.push({ ...family })
+                }
+
+                break
+            }
         }
     }
     
+    console.log(families)
+
     chrome.runtime.sendMessage(
         {
             type: "rsu-data-ready",

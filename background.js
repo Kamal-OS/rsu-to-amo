@@ -1,5 +1,4 @@
 // TODO: use doc UUID (docId) to prevent reinjection when laod inplace or load from cache
-
 let COMPLETE_ONCE = false
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -8,6 +7,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const RNP_URL = "https://www.rnp.ma/pre-registration-ui/#/"
 
     if (tab.url.startsWith(RSU_URL) || tab.url.endsWith(RSU_DEMO)) {
+        /*
+        * RSU_URL when opened has multiple 'complete' status
+        * so inject once we need the following if code
+        */
         if (COMPLETE_ONCE && tab.status === "loading") {
             COMPLETE_ONCE = false
         }
@@ -15,12 +18,12 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             COMPLETE_ONCE = true
 
             chrome.scripting.insertCSS({
-                target: {tabId: tab.id},
+                target: { tabId: tab.id },
                 files: ["./style/rsu-ui.css"]
             })
 
             chrome.scripting.executeScript({
-                target: {tabId: tab.id},
+                target: { tabId: tab.id },
                 files: ["./scripts/inject/rsu-ui.js"]
             })
         }
@@ -30,7 +33,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     else if (tab.url.startsWith(RNP_URL)) {
         if (tab.status === "complete") {
             chrome.scripting.executeScript({
-                target: {tabId: tab.id},
+                target: { tabId: tab.id },
                 func: () => {
                     const div = document.querySelector("div.heading")
                     setInterval(() => {
@@ -45,7 +48,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 })
 
 const AMO_URL = "https://www.amotadamon.ma/"
-let data = {
+
+var data = {
     families: null,
     window: null,
     groupId: null
@@ -55,7 +59,7 @@ Object.seal(data) // static object: can't add or remove properties
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.type === "rsu-ui-ready") {
         await chrome.scripting.executeScript({
-            target: {tabId: sender.tab.id},
+            target: { tabId: sender.tab.id },
             files: ["./scripts/inject/rsu-data.js"]
         })
     }
@@ -68,30 +72,58 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             focused: true
         })
 
-        injectData(true)
+        // inject head of family
+        injectData(data.families.head, true)
+        delete data.families.head
     }
 
+    // TODO: this lisetener may get things confused next time you go to the url
+    // There is better ways
+    // double listerners, listerner on top of another?
+    // move to top?
     if (message.type === "amo-form-done") {
         chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-            const AMO_COMPLETE_URL = "https://www.amotadamon.ma/Demande_Reussie_Ar.aspx"
+            const AMO_COMPLETE_URL = AMO_URL + "Demande_Reussie_Ar.aspx"
 
-            if (tab.id === sender.tab.id && tab.url === AMO_COMPLETE_URL && tab.status === "complete") {
-                await chrome.scripting.executeScript({
-                    target: {tabId: sender.tab.id},
-                    func: () => {
-                        document.querySelector("#ctl00_ContentPlaceHolder1_Imprimer").click()
-                    },
-                    world: "MAIN"
-                })
+            if (tab.id === sender.tab.id && tab.url.startsWith(AMO_COMPLETE_URL) && tab.status === "complete") {
+                // click the download button
+                // await chrome.scripting.executeScript({
+                //     target: { tabId: sender.tab.id },
+                //     func: () => {
+                //         document.querySelector("#ctl00_ContentPlaceHolder1_Imprimer").click()
+                //     },
+                //     world: "MAIN"
+                // })
+                
+                if (!data.families) return
+                
+                for (const [key, value] of Object.entries(data.families)) {
+                    if (!value || ((key === "adults" || key === "siblings") && value.length < 1)) {
+                        delete data.families[key]
+                        console.log(`${key} deleted`)
+                        continue
+                    }
 
-                injectData(false)
+                    if (key === "adults" || key === "siblings") { // array
+                        injectData(data.families[key].shift())
+                        console.log(`${key} injected`)
+                    }
+                    else { // single
+                        injectData(data.families[key])
+                        console.log(`${key} injected`)
+                        delete data.families[key]
+                        console.log(`${key} deleted`)
+                    }
+                    break
+                }
+
             }
         })
     }
 
     if (message.type === "click-add-child") {
         chrome.scripting.executeScript({
-            target: {tabId: sender.tab.id},
+            target: { tabId: sender.tab.id },
             func: () => {
                 document.querySelector('[id*="ButtonAdd"]').click()
             },
@@ -100,21 +132,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
 })
 
-async function injectData(isFirst) {
-    if (!data.families.length) return
+async function injectData(family, isFirst = false) {
+    // null
+    if (!family) return
 
     // create tab with AMO_URL
     const amoTab = await chrome.tabs.create({
         active: isFirst,
         url: AMO_URL,
         windowId: data.window.id
-    })
-
-    await chrome.scripting.executeScript({
-        target: {tabId: amoTab.id},
-        func: () => {
-            document.querySelector("a.intro-btn-bl").click()
-        }
     })
 
     if (isFirst) {
@@ -134,7 +160,7 @@ async function injectData(isFirst) {
         // remove first empty tab
         chrome.tabs.remove(data.window.tabs[0].id)
     }
-    
+
     if (!isFirst) {
         // add tab to the group
         chrome.tabs.group({
@@ -142,10 +168,17 @@ async function injectData(isFirst) {
             groupId: data.groupId
         })
     }
+    
+    // Enter to form filling page
+    await chrome.scripting.executeScript({
+        target: { tabId: amoTab.id },
+        func: () => {
+            document.querySelector("a.intro-btn-bl").click()
+        }
+    })
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         if (tab.id === amoTab.id && tab.url.startsWith(AMO_URL + "Formulaire_Inscription_Ar.aspx") && tab.status === "complete") {
-            const family = data.families.shift()
             chrome.tabs.sendMessage(amoTab.id,
                 {
                     type: "amo-form-insert",
