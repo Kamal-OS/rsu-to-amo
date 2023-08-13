@@ -72,72 +72,77 @@ div.gender-input label {
 
 /* Toggle Switch */
 
-.switch {
-    font-size: 1rem;
+._switch {
+    font-size: .6rem;
+    
+    --width: 4em;
+    --height: 2em;
+    width: var(--width);
+    height: var(--height);
+    margin: 0;
+    padding: 0;
+    /* border: 2px red solid; */
 
     position: relative;
     display: inline-block;
 }
 
-.slider {
-    --width: 4em;
-    --height: 2em;
-
+._slider {
     position: absolute;
     cursor: pointer;
 
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
 
     width: var(--width);
     height: var(--height);
 
     background-color: #ccc;
-    transition: all 0.3s linear;
+    transition: .4s;
 }
 
-.slider.round {
+._slider._round {
     border-radius: var(--width);
 }
 
-.slider::before {
-    --diameter: 1em;
-    --left-space: .2em;
+._slider::before {
+    --padding: .3em;
+    --diameter: calc(var(--height) - var(--padding) * 2);
 
     position: absolute;
     content: "";
 
-    left: var(--left-space);
-    top: var(--left-space);
+    left: var(--padding);
+    bottom: var(--padding);
 
-    /* width: 2em;
-    height: 2em; */
     width: var(--diameter);
     height: var(--diameter);
 
     background-color: #fff;
-    transition: all 0.3s linear;
+    transition: .4s;
 }
 
-.slider.round::before {
+._slider._round::before {
     border-radius: 50%;
 }
 
-input[type="checkbox"]:checked+.slider::before {
-    --translate-X: calc(var(--width) - var(--diameter) - var(--left-space) * 2);
-
-    translate: translateX(--translate-X)
+input[type="checkbox"]:checked+._slider::before {
+    --translateX: calc(var(--width) - var(--height));
+    transform: translate(var(--translateX));
 }
 
-input[type="checkbox"]:checked+.slider {
-    background-color: #7983ff;
+input[type="checkbox"]:checked+._slider {
+    background-color: dodgerblue;
 }
 
 input[type="checkbox"] {
-    /* display: none;
+    display: none;
     opacity: 0;
     width: 0;
-    height: 0; */
+    height: 0;
+}
+
+/* row after toggle switch */
+
+tr.disabled > td {
+    background-color: darkgray !important;
 }
