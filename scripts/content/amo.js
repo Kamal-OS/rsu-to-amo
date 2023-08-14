@@ -1,6 +1,6 @@
 "use strict";
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.type !== "amo-form-insert") return
 
     const family = message.data
@@ -70,43 +70,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     //// children
-    new Promise(resolve => {
-        family.children.forEach((child, index, array) => {
-            // wait until child fileds are loaded (after add btn click) then set them
-            const tempInterval = setInterval(() => {
-                /// get child fields
-                const childFields = {
-                    idcs: document.querySelector('[id*="Txt_IDCS_Enfant_Ajt"]'),
-                    birthdate: {
-                        year: document.querySelector("#Cbo_Annees_Naiss_Enfant_Ajt"),
-                        month: document.querySelector("#Cbo_Mois_Naiss_Enfant_Ajt"),
-                        day: document.querySelector("#Cbo_Jours_Naiss_Enfant_Ajt")
-                    },
-                    gender: document.querySelector('[id*="C_Sexe_Enfant_Ajt"'),
-                }
+    await family.children.forEach(async (child, index, array) => {
+        // wait until child fileds are loaded (after add btn click) then set them
+        const tempInterval = await setInterval(() => {
+            /// get child fields
+            const childFields = {
+                idcs: document.querySelector('[id*="Txt_IDCS_Enfant_Ajt"]'),
+                birthdate: {
+                    year: document.querySelector("#Cbo_Annees_Naiss_Enfant_Ajt"),
+                    month: document.querySelector("#Cbo_Mois_Naiss_Enfant_Ajt"),
+                    day: document.querySelector("#Cbo_Jours_Naiss_Enfant_Ajt")
+                },
+                gender: document.querySelector('[id*="C_Sexe_Enfant_Ajt"'),
+            }
 
-                // check
-                if (!childFields.idcs || childFields.idcs.value) return
+            // checking
+            if (!childFields.idcs || childFields.idcs.value) return
 
-                /// set child fields
-                // idcs
-                childFields.idcs.value = child.idcs.toString()
-                // brithdate
-                childFields.birthdate.year.value = child.birthdate.year
-                childFields.birthdate.month.value = Number(child.birthdate.month).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
-                childFields.birthdate.day.value = Number(child.birthdate.day).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
-                // gender (default to male)
-                childFields.gender.querySelector(`input[value="${child.gender}"]`).click()
+            /// set child fields
+            // idcs
+            childFields.idcs.value = child.idcs.toString()
+            // brithdate
+            childFields.birthdate.year.value = child.birthdate.year
+            childFields.birthdate.month.value = Number(child.birthdate.month).toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false })
+            childFields.birthdate.day.value = Number(child.birthdate.day).toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false })
+            // gender (default to male)
+            childFields.gender.querySelector(`input[value="${child.gender}"]`).click()
 
-                /// fields are ready just click the add button
-                chrome.runtime.sendMessage(sender.id, {
-                    type: "click-add-child"
-                })
+            /// fields are ready just click the add button
+            chrome.runtime.sendMessage(sender.id, {
+                type: "click-add-child"
+            })
 
-                // stop
-                clearInterval(tempInterval)
-            }, 500)
-        })
+            // stop
+            clearInterval(tempInterval)
+        }, 500)
+    })
+    new Promise((resolve) => {
+        
         resolve()
     })
     .then(() => {

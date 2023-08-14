@@ -134,8 +134,25 @@
             // toggleSwitch clicked
             toggleInput.addEventListener("change", (event) => {
                 const thisIndex = event.target.getAttribute("rowindex")
-                switchStateLookup[thisIndex] = event.target.checked
+                const isChecked = event.target.checked
+                switchStateLookup[thisIndex] = isChecked
 
+                const targetGenderOptions = document.querySelectorAll(`input[rowindex="${thisIndex}"]`)
+                const targetGenderOptionsDisabled = (state) => {
+                    targetGenderOptions.forEach((input) => {
+                        input.disabled = state
+                    })
+                }
+
+                if (isChecked) {
+                    event.target.closest("tr").classList.remove("disabled")
+                    targetGenderOptionsDisabled(false)
+                }
+                else {
+                    event.target.closest("tr").classList.add("disabled")
+                    targetGenderOptionsDisabled(true)
+                }
+                
                 updateSubmitBtn()
 
                 event.preventDefault()
