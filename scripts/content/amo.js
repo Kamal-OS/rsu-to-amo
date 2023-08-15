@@ -70,9 +70,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
 
     //// children
-    await family.children.forEach(async (child, index, array) => {
+    for (const child of family.children) {
         // wait until child fileds are loaded (after add btn click) then set them
-        const tempInterval = await setInterval(() => {
+        const tempInterval = await Promise.resolve(setInterval(() => {
             /// get child fields
             const childFields = {
                 idcs: document.querySelector('[id*="Txt_IDCS_Enfant_Ajt"]'),
@@ -94,7 +94,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             childFields.birthdate.year.value = child.birthdate.year
             childFields.birthdate.month.value = Number(child.birthdate.month).toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false })
             childFields.birthdate.day.value = Number(child.birthdate.day).toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false })
-            // gender (default to male)
+            // gender
             childFields.gender.querySelector(`input[value="${child.gender}"]`).click()
 
             /// fields are ready just click the add button
@@ -104,17 +104,12 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
             // stop
             clearInterval(tempInterval)
-        }, 500)
-    })
-    new Promise((resolve) => {
-        
-        resolve()
-    })
-    .then(() => {
-        chrome.runtime.sendMessage(sender.id,
-            {
-                type: "amo-form-done"
-            }
-        )
-    })
+        }, 500))
+    }
+
+    chrome.runtime.sendMessage(sender.id,
+        {
+            type: "amo-form-done"
+        }
+    )
 })

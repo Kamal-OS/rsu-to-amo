@@ -137,7 +137,7 @@
                 const isChecked = event.target.checked
                 switchStateLookup[thisIndex] = isChecked
 
-                const targetGenderOptions = document.querySelectorAll(`input[rowindex="${thisIndex}"]`)
+                const targetGenderOptions = document.querySelectorAll(`input[id^="gender"][rowindex="${thisIndex}"]`)
                 const targetGenderOptionsDisabled = (state) => {
                     targetGenderOptions.forEach((input) => {
                         input.disabled = state
