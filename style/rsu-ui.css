@@ -134,7 +134,7 @@ input[type="checkbox"]:checked+._slider {
     background-color: dodgerblue;
 }
 
-input[type="checkbox"] {
+._switch > input[type="checkbox"] {
     display: none;
     opacity: 0;
     width: 0;
@@ -144,11 +144,11 @@ input[type="checkbox"] {
 
 /* row after toggle switch */
 
-table > tbody tr:hover > td {
+rsu-members-detail table > tbody tr:hover > td {
     background-color: skyblue !important;
 }
 
-table > tbody tr.disabled > td {
+rsu-members-detail table > tbody tr.disabled > td {
     background-color: darkgray !important;
 }
 

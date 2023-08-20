@@ -57,8 +57,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     func: () => {
-                        const target = document.querySelector("header div")
-                        const click = setInterval(() => {
+                        const target = document.querySelector("header")
+                        setInterval(() => {
                             target.click()
                             console.log("Clicked!")
                         }, 1000)
@@ -76,7 +76,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 target: { tabId: tab.id },
                 func: () => {
                     const target = document.querySelector("div.heading")
-                    const click = setInterval(() => {
+                    setInterval(() => {
                         target.click()
                         console.log("Clicked!")
                     }, 1000)
