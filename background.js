@@ -46,9 +46,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ["./scripts/inject/rsu-ui.js"]
-            }).then(
-                res => console.log(res)
-            )
+            })
         }
 
         // Prevent RSU auto log out
@@ -95,6 +93,13 @@ var data = {
 Object.seal(data) // static object: can't add or remove properties
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if (message.type === "amo-inject-css") {
+        await chrome.scripting.insertCSS({
+            target: { tabId: sender.tab.id },
+            files: ["./style/amo-ui.css"]
+        })
+    }
+
     if (message.type === "rsu-auto-gender" && PARAMETERS.autogender) {
         let data = await fetch("./data/female_names.json")
         const female_names = await data.json()

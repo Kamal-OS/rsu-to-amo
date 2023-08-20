@@ -11,21 +11,67 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         family.spouse = null
     }
 
-    // if master is female, swap master and spouse
-    if (family.master && family.spouse) {
-        if (family.master.gender === "F") {
-            const temp = family.master
-            family.master = family.spouse
-            family.spouse = temp
+    // family master is female problem
+    if (family.master && family.spouse && family.master.gender === "F" && family.spouse.gender === "M") {
+        // inject css for box alert
+        await chrome.runtime.sendMessage(sender.id,
+            {
+                type: "amo-inject-css"
+            }
+        )
 
-            alert(`
-                انتباه:
-                رب الأسرة في السجل الاجتماعي الموحد أنثى والزوج ذكر.
-                لذا تم التبديل بشكل تلقائي في هذا الطلب، حتى لايتم رفضه.
-                وشكراً،
-                كمال ^_^
-            `)
-        }
+        const htmlPopupBox = `
+            <div class="_modal">
+                <div class="_popup_box">
+                    <h1>رب الأسرة في السجل الاجتماعي الموحد هي الزوجة</h1>
+                    <label>ماذا تريدنا أن نفعل (كمال ^_^)</label>
+                    <div class="btns">
+                        <button class="btn1 _popup" value="swap-gender">تبديل النوع فقط
+                            <span class="_popuptext">
+                                سيتم تبديل جنس رب الأسرة مع جنس الزوج(ة) فقط.<br>
+                                قم باختيار هذا الخيار في حالة تحديد الجنس بشكل خاطئ في جدول السجل الاجتماعي الموحد.
+                            </span>
+                        </button>
+                        <button class="btn2 _popup" value="swap-master">تبديل رب الأسرة
+                            <span class="_popuptext">
+                                سيتم تبديل رب الأسرة (انثى) مع الزوج ككل.<br>
+                                فيصبح صاحب الطلب هو الزوج (ذكر).<br>
+                                يتم رفض طلب امو في حالة صاحب الطلب انثى والزوج ذكر،<br>
+                                حتى لو كان كذلك على مستوى السجل الاجتماعي الموحد.
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `
+
+        await new Promise(resolve => {
+            document.body.insertAdjacentHTML('beforeend', htmlPopupBox)
+            const popupBox = document.querySelector("._modal")
+            const btns = popupBox.querySelectorAll(".btns button")
+            btns.forEach((btn) => {
+                btn.addEventListener("click", (event) => {
+                    const response = event.target.value
+
+                    switch (response.trim()) {
+                        case "swap-gender": {
+                            family.master.gender = "M"
+                            family.spouse.gender = "F"
+                            break
+                        }
+                        case "swap-master": {
+                            const temp = family.master
+                            family.master = family.spouse
+                            family.spouse = temp
+                            break
+                        }
+                    }
+
+                    popupBox.style.display = 'none'
+                    resolve()
+                })
+            })
+        })
     }
     
     //// master

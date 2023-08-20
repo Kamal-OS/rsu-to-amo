@@ -33,7 +33,8 @@
         {
             "js": ["./scripts/content/rsu.js"],
             "matches": [
-                "https://*.rsu.ma/rsu/*"
+                "https://*.rsu.ma/rsu/*",
+                "https://*.github.io/RSU-to-AMO/demo/demo.html"
             ]
         }
     ],
