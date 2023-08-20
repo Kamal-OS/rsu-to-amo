@@ -44,7 +44,7 @@
 
 ._popup_box .btns .btn1,
 ._popup_box .btns .btn2 {
-    font-size: 1rem;
+    font-size: .9rem;
 
     background: #274e85;
     color: white;
@@ -87,7 +87,7 @@
     color: #fff;
     text-align: center;
     border-radius: 6px;
-    padding: 8px 0;
+    padding: 8px 10px;
     position: absolute;
     z-index: 9999;
     bottom: 115%;
