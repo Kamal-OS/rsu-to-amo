@@ -7,7 +7,8 @@
     "permissions": [
         "tabs",
         "scripting",
-        "tabGroups"
+        "tabGroups",
+        "storage"
     ],
 
     "host_permissions": [
@@ -28,6 +29,12 @@
             "matches": [
                 "https://*.amotadamon.ma/*"
             ]
+        },
+        {
+            "js": ["./scripts/content/rsu.js"],
+            "matches": [
+                "https://*.rsu.ma/rsu/*"
+            ]
         }
     ],
 
@@ -39,6 +46,6 @@
             "48": "./assets/icon48.png",
             "128": "./assets/icon128.png"
         },
-        "default_popup": "popup.html"
+        "default_popup": "./popup/popup.html"
     }
 }

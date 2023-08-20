@@ -10,6 +10,23 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         family.master = family.spouse
         family.spouse = null
     }
+
+    // if master is female, swap master and spouse
+    if (family.master && family.spouse) {
+        if (family.master.gender === "F") {
+            const temp = family.master
+            family.master = family.spouse
+            family.spouse = temp
+
+            alert(`
+                انتباه:
+                رب الأسرة في السجل الاجتماعي الموحد أنثى والزوج ذكر.
+                لذا تم التبديل بشكل تلقائي في هذا الطلب، حتى لايتم رفضه.
+                وشكراً،
+                كمال ^_^
+            `)
+        }
+    }
     
     //// master
     /// get html fields of family master

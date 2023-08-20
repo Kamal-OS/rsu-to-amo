@@ -33,3 +33,34 @@ document.querySelector(".demo-btn").addEventListener("click", () => {
         url: demoPage
     })
 })
+
+/*
+** Parameters
+*/
+const inputs = document.querySelectorAll(".parameters input")
+inputs.forEach(async (input) => {
+  // get and set last state from storage
+  const key = input.id
+  const PARAMETERS = await chrome.storage.local.get([key])
+  input.checked = PARAMETERS[key]
+  console.log(PARAMETERS)
+  // Listerners for inputs parameters
+  input.addEventListener("change", async (event) => {
+    const target = event.target
+    const targetID = target.id.toString()
+    const targetState = target.checked
+    console.log(targetState)
+    chrome.runtime.sendMessage(
+        {
+          type: targetID,
+          state: targetState
+        }
+    )
+    
+    // set current state in storage
+    await chrome.storage.local.set({ [targetID]: targetState })
+    
+    event.preventDefault()
+    event.stopPropagation()
+  })
+})

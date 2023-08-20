@@ -79,7 +79,7 @@
         }
         Object.seal(family)
 
-        switch (person.relation) {
+        switch (person.relation.trim()) {
             case "رب الأسرة": {
                 family.master = { ...person }
                 families.head = { ...family }

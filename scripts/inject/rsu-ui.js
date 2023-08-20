@@ -1,7 +1,7 @@
 "use strict";
 
 
-(() => {
+(async () => {
     const htmlGenderOptions = `
         <div class="gender-input-wrap">
             <div class="gender-input">
@@ -30,6 +30,31 @@
             <span class="_slider _round"></span>
         </label>
     `
+
+    // custom alert for score
+    const htmlAlert = `
+        <div class="_alert">
+            <span class="_closebtn" onclick="this.parentElement.style.opacity=0">&times;</span>
+            <button class="_skipbtn">تجاهل</button>
+            <p><strong>تنبيه!</strong> مؤشر الأسرة أقل من العتبة 9,3264284</p>
+        </div>
+    `
+
+    // Insert the alert
+    document.body.insertAdjacentHTML('beforeend', htmlAlert)
+    const alert = document.querySelector("._alert")
+    const alertSkipBtn = alert.querySelector("button")
+    if (alertSkipBtn) {
+        alertSkipBtn.addEventListener("click", () => {
+                chrome.runtime.sendMessage(
+                    {
+                        type: "rsu-ui-ready-force"
+                    }
+                )
+                alert.style.opacity = 0
+            })
+    }
+    
     
     const table = document.querySelector("rsu-members-detail table")
     const headers = table.querySelectorAll("thead tr th")
@@ -52,119 +77,127 @@
     // Make gender header
     makeHeader(2, "النوع", "after")
     
-    // insert columns when atleast one row is loaded in the table
-    const tempInterval = setInterval(() => {
 
-        const rows = table.querySelectorAll("tbody tr")
-        const countRows = rows.length
-        if (countRows < 1) return
+    await new Promise((resolve) => {
+        // insert columns when atleast one row is loaded in the table
+        const tempInterval = setInterval(() => {
 
-        // lookup table for gender options (is answered?)
-        const genderAnsweredLookup = new Array(countRows).fill(false)
+            const rows = table.querySelectorAll("tbody tr")
+            const countRows = rows.length
+            if (countRows < 1) return
 
-        // lookup table for switchs (is active?)
-        const switchStateLookup = new Array(countRows).fill(true) // default is active
+            // lookup table for gender options (is answered?)
+            const genderAnsweredLookup = new Array(countRows).fill(false)
 
-        const updateSubmitBtn = () => {
-            const isAllAnswered = genderAnsweredLookup.every((ans, index) => {
-                const active = switchStateLookup[index]
-                if ((!ans && active)) {
-                    return false
+            // lookup table for switchs (is active?)
+            const switchStateLookup = new Array(countRows).fill(true) // default is active
+
+            const updateSubmitBtn = () => {
+                const isAllAnswered = genderAnsweredLookup.every((ans, index) => {
+                    const active = switchStateLookup[index]
+                    if ((!ans && active)) {
+                        return false
+                    }
+                    return true
+                })
+
+                const countEnabled = switchStateLookup.filter((state) => (state === true)).length
+
+                if (isAllAnswered && countEnabled > 0) {
+                    enabledSubmitBtn()
                 }
-                return true
-            })
-
-            const countEnabled = switchStateLookup.filter((state) => (state === true)).length
-
-            if (isAllAnswered && countEnabled > 0) {
-                enabledSubmitBtn()
+                else {
+                    disableSubmitBtn()
+                }
             }
-            else {
-                disableSubmitBtn()
-            }
-        }
 
-        rows.forEach((row, index) => {
-            const cells = row.querySelectorAll("td")
+            rows.forEach((row, index) => {
+                const cells = row.querySelectorAll("td")
 
-            // Add cell for gender options
-            const thirdCol = cells[2]
-            const genderOptions = thirdCol.cloneNode(false)
-            genderOptions.innerHTML = htmlGenderOptions
+                // Add cell for gender options
+                const thirdCol = cells[2]
+                const genderOptions = thirdCol.cloneNode(false)
+                genderOptions.innerHTML = htmlGenderOptions
 
-            // genderOptions's radio input
-            const genderInputs = genderOptions.querySelectorAll("input")
-            // edit radio IDs of gender options
-            genderInputs.forEach((input) => {
-                input.id += index
+                // genderOptions's radio input
+                const genderInputs = genderOptions.querySelectorAll("input")
+                // edit radio IDs of gender options
+                genderInputs.forEach((input) => {
+                    input.id += index
 
-                const nameAttr = input.getAttribute("name") + index
-                input.setAttribute("name", nameAttr)
+                    const nameAttr = input.getAttribute("name") + index
+                    input.setAttribute("name", nameAttr)
 
-                input.setAttribute("rowindex", index)
+                    input.setAttribute("rowindex", index)
 
-                // TODO: add listener to global table only
-                input.addEventListener('change', (event) => {
+                    // TODO: add listener to global table only
+                    input.addEventListener('change', (event) => {
+                        const thisIndex = event.target.getAttribute("rowindex")
+                        genderAnsweredLookup[thisIndex] = true
+
+                        updateSubmitBtn()
+
+                        event.preventDefault()
+                        event.stopPropagation()
+                    })
+                })
+                
+                // edit label's' attribute
+                genderOptions.querySelectorAll("label").forEach((label) => {
+                    const forAttr = label.getAttribute("for") + index
+                    label.setAttribute("for", forAttr)
+                })
+
+                // insert the genderOptions cell
+                thirdCol.insertAdjacentElement('afterend', genderOptions)
+                
+                // Add cell for toggle switch
+                const firstCol = cells[0]
+                const toggleSwitch = firstCol.cloneNode(false)
+                toggleSwitch.innerHTML = htmlToggleSwitch
+
+                // toggleSwitch's checkbox input
+                const toggleInput = toggleSwitch.querySelector("input")
+                // edit switch IDs and value
+                toggleInput.id += index
+                toggleInput.setAttribute("rowindex", index)
+                // toggleSwitch clicked
+                toggleInput.addEventListener("change", (event) => {
                     const thisIndex = event.target.getAttribute("rowindex")
-                    genderAnsweredLookup[thisIndex] = true
-                    
+                    const isChecked = event.target.checked
+                    switchStateLookup[thisIndex] = isChecked
+
+                    const targetGenderOptions = document.querySelectorAll(`input[id^="gender"][rowindex="${thisIndex}"]`)
+                    const targetGenderOptionsDisabled = (state) => {
+                        targetGenderOptions.forEach((input) => {
+                            input.disabled = state
+                        })
+                    }
+
+                    if (isChecked) {
+                        event.target.closest("tr").classList.remove("disabled")
+                        targetGenderOptionsDisabled(false)
+                    }
+                    else {
+                        event.target.closest("tr").classList.add("disabled")
+                        targetGenderOptionsDisabled(true)
+                    }
+
                     updateSubmitBtn()
 
                     event.preventDefault()
                     event.stopPropagation()
                 })
+
+                // insert the toggleSwitch cell
+                firstCol.insertAdjacentElement('beforebegin', toggleSwitch)
+
             })
 
-            // edit label's' attribute
-            genderOptions.querySelectorAll("label").forEach((label) => {
-                const forAttr = label.getAttribute("for") + index
-                label.setAttribute("for", forAttr)
-            })
-
-            // Add cell for toggle switch
-            const firstCol = cells[0]
-            const toggleSwitch = firstCol.cloneNode(false)
-            toggleSwitch.innerHTML = htmlToggleSwitch
-            
-            // toggleSwitch's checkbox input
-            const toggleInput = toggleSwitch.querySelector("input")
-            // edit switch IDs and value
-            toggleInput.id += index
-            toggleInput.setAttribute("rowindex", index)
-            // toggleSwitch clicked
-            toggleInput.addEventListener("change", (event) => {
-                const thisIndex = event.target.getAttribute("rowindex")
-                const isChecked = event.target.checked
-                switchStateLookup[thisIndex] = isChecked
-
-                const targetGenderOptions = document.querySelectorAll(`input[id^="gender"][rowindex="${thisIndex}"]`)
-                const targetGenderOptionsDisabled = (state) => {
-                    targetGenderOptions.forEach((input) => {
-                        input.disabled = state
-                    })
-                }
-
-                if (isChecked) {
-                    event.target.closest("tr").classList.remove("disabled")
-                    targetGenderOptionsDisabled(false)
-                }
-                else {
-                    event.target.closest("tr").classList.add("disabled")
-                    targetGenderOptionsDisabled(true)
-                }
-                
-                updateSubmitBtn()
-
-                event.preventDefault()
-                event.stopPropagation()
-            })
-
-            firstCol.insertAdjacentElement('beforebegin', toggleSwitch)
-            thirdCol.insertAdjacentElement('afterend', genderOptions)
-        })
-
-        clearInterval(tempInterval)
-    }, 500)
+            clearInterval(tempInterval)
+            resolve()
+        }, 500)
+    })
 
     // insert submit button after the table
     table.insertAdjacentHTML('afterend', htmlSubmitBtn)
@@ -192,4 +225,13 @@
         )
     })
     
+
+    // after UI is ready
+    // auto fill gender if active
+    chrome.runtime.sendMessage(
+        {
+            type: "rsu-auto-gender"
+        }
+    )
+
 })()

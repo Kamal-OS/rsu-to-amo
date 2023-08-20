@@ -60,6 +60,8 @@ li {
     background-color: #e0e2ff;
 }
 
+/* DEMO Button */
+
 .demo-btn {
     display: inline-block;
     border: none;
@@ -88,12 +90,13 @@ div.demo {
 footer {
     margin: 0;
     padding: 0;
+    margin-top: 2em;
 
     position: sticky;
     top: 100%;
 
     display: grid;
-    place-content: center right;
+    place-content: center left;
     padding-right: 1em;
 
     height: 2em;
@@ -106,4 +109,27 @@ footer {
 
 footer a {
     text-decoration: none;
+}
+
+/* Parameters */
+
+.parameters h1 {
+    font-size: 1rem;
+}
+
+.parameters {
+    direction: rtl !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.parameters span {
+    margin-bottom: .5em;
+    user-select: none;
+}
+
+.parameters input {
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
 }

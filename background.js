@@ -1,12 +1,35 @@
+// Parameters (defaults)
+const PARAMETERS = {
+    rnp_autoclick: true,
+    rsu_autoclick: false,
+    score_check: true,
+    autodownload: true,
+    autogender: true
+}
+
+// set parameters in storage to defaults
+chrome.runtime.onInstalled.addListener(async () => {
+    await chrome.storage.local.set({ ...PARAMETERS })
+})
+
+/// URLS
+// RSU
+const RSU_URL = "https://www.rsu.ma/rsu/"
+const RSU_ACCOUNT_URL = RSU_URL + "personnal-space"
+const RSU_REGISTER_URL = RSU_URL + "pre-registration"
+const RSU_DEMO = "/demo/demo.html"
+// RNP
+const RNP_URL = "https://www.rnp.ma/pre-registration-ui/#/"
+// AMO
+const AMO_URL = "https://www.amotadamon.ma/"
+const AMO_COMPLETE_URL = AMO_URL + "Demande_Reussie_Ar.aspx"
+
 // TODO: use doc UUID (docId) to prevent reinjection when laod inplace or load from cache
 let COMPLETE_ONCE = false
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    const RSU_URL = "https://www.rsu.ma/rsu/personnal-space"
-    const RSU_DEMO = "/demo/demo.html"
-    const RNP_URL = "https://www.rnp.ma/pre-registration-ui/#/"
 
-    if (tab.url.startsWith(RSU_URL) || tab.url.endsWith(RSU_DEMO)) {
+    if (tab.url.startsWith(RSU_ACCOUNT_URL) || tab.url.endsWith(RSU_DEMO)) {
         // if refreshed (or reentred) recapture 'complete'
         if (COMPLETE_ONCE && tab.status === "loading") {
             COMPLETE_ONCE = false
@@ -23,29 +46,46 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ["./scripts/inject/rsu-ui.js"]
-            })
+            }).then(
+                res => console.log(res)
+            )
+        }
+
+        // Prevent RSU auto log out
+        if ((tab.url.startsWith(RSU_REGISTER_URL) || tab.url.startsWith(RSU_URL)) && PARAMETERS.rsu_autoclick) {
+            if (tab.status === "complete") {
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: () => {
+                        const target = document.querySelector("header div")
+                        const click = setInterval(() => {
+                            target.click()
+                            console.log("Clicked!")
+                        }, 1000)
+                    },
+                    world: "MAIN"
+                })
+            }
         }
     }
 
     // Prevent RNP inactive state detection (Auto-click)
-    // else if (tab.url.startsWith(RNP_URL)) {
-    //     if (tab.status === "complete") {
-    //         chrome.scripting.executeScript({
-    //             target: { tabId: tab.id },
-    //             func: () => {
-    //                 const div = document.querySelector("div.heading")
-    //                 setInterval(() => {
-    //                     div.click()
-    //                     console.log("Clicked!")
-    //                 }, 1000)
-    //             },
-    //             world: "MAIN"
-    //         })
-    //     }
-    // }
+    if (tab.url.startsWith(RNP_URL) && PARAMETERS.rnp_autoclick) {
+        if (tab.status === "complete") {
+            chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => {
+                    const target = document.querySelector("div.heading")
+                    const click = setInterval(() => {
+                        target.click()
+                        console.log("Clicked!")
+                    }, 1000)
+                },
+                world: "MAIN"
+            })
+        }
+    }
 })
-
-const AMO_URL = "https://www.amotadamon.ma/"
 
 var data = {
     families: null,
@@ -55,7 +95,55 @@ var data = {
 Object.seal(data) // static object: can't add or remove properties
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    if (message.type === "rsu-ui-ready") {
+    if (message.type === "rsu-auto-gender" && PARAMETERS.autogender) {
+        let data = await fetch("./data/female_names.json")
+        const female_names = await data.json()
+        data = await fetch("./data/male_names.json")
+        const male_names = await data.json()
+
+        chrome.tabs.sendMessage(sender.tab.id,
+            {
+                type: "rsu-set-gender",
+                data: {female_names, male_names}
+            }
+        )
+    }
+    
+    if (message.type === "rsu-ui-ready" || message.type === "rsu-ui-ready-force") {
+        
+        if (PARAMETERS.score_check && message.type !== "rsu-ui-ready-force") {
+            // show score alert if below the threshold
+            // and skip until user respond
+            let skip = await chrome.scripting.executeScript({
+                target: { tabId: sender.tab.id },
+                func: () => {
+                    let score = document.querySelector("rsu-score-detail .graphScore span")
+                    if (!score) return
+                    
+                    score = score.textContent
+                    score = score.replace(',', '.')
+                    score = parseFloat(score)
+                    
+                    if (score > 9.3264284) {
+                        const alert = document.querySelector("._alert")
+                        if (!alert) return
+                        alert.style.opacity = 1
+
+                        // skip
+                        return true
+                    }
+
+                    // don't skip
+                    return false
+                }
+            })
+
+            skip = skip[0].result
+
+            // skip
+            if (skip) return
+        }
+
         chrome.scripting.executeScript({
             target: { tabId: sender.tab.id },
             files: ["./scripts/inject/rsu-data.js"]
@@ -76,22 +164,24 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
     if (message.type === "amo-form-done") {
         chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-            const AMO_COMPLETE_URL = AMO_URL + "Demande_Reussie_Ar.aspx"
-
             if (tab.id === sender.tab.id && tab.url.startsWith(AMO_COMPLETE_URL) && tab.status === "complete") {
                 // click the download button
-                // await chrome.scripting.executeScript({
-                //     target: { tabId: sender.tab.id },
-                //     func: () => {
-                //         document.querySelector("#ctl00_ContentPlaceHolder1_Imprimer").click()
-                //     },
-                //     world: "MAIN"
-                // })
+                if (PARAMETERS.autodownload) {
+                    chrome.scripting.executeScript({
+                        target: { tabId: sender.tab.id },
+                        func: () => {
+                            const btn = document.querySelector("main input")
+                            if (btn) {
+                                btn.click()
+                            }
+                        },
+                        world: "MAIN"
+                    })
+                }
                 
                 if (!data.families) return
                 
                 insertData()
-
             }
         })
     }
@@ -104,6 +194,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             },
             world: "MAIN"
         })
+    }
+
+    // Messages from popup.js for parameters
+    if (message.type in PARAMETERS) {
+        PARAMETERS[message.type] = message.state
     }
 })
 
