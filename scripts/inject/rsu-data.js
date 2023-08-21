@@ -29,6 +29,8 @@
         // TODO: حفيد(ة)، آخر
     }
 
+    let notCaptured = []
+
     // TODO: index not used
     for (const [index, row] of rows.entries()) {
         // all cells in row
@@ -167,9 +169,25 @@
 
                 break
             }
+            
+            default: {
+                let personFullName = person.firstname + " " + person.lastname
+                notCaptured.push(personFullName)
+            }
         }
     }
     
+    if (notCaptured.length) {
+        notCaptured = notCaptured.map(name => "- " + name)
+        alert(`
+            لم يتم التعرف على:
+            ${notCaptured.join('\n            ')}
+
+            يجب تعبئة طلب امو لهؤلاء بشكل شكل يدوي،
+            أو اضافته لطلب احد الافراد الآخرين حسب علاقتهم بهم.
+        `)
+    }
+
     console.log(families)
 
     chrome.runtime.sendMessage(
