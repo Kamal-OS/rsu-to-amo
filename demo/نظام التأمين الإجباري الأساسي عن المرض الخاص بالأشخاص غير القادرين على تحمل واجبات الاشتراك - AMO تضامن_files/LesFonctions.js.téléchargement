@@ -1,0 +1,214 @@
+﻿
+            var F = new Array();
+            F[0] = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+            F[1] = new Array(1, 5, 7, 6, 2, 8, 3, 0, 9, 4);
+
+            for (var i = 2; i < 8; i++) {
+                F[i] = new Array();
+                for (var j = 0; j < 10; j++)
+                    F[i][j] = F[i - 1][F[1][j]];
+            }
+
+            var Op = new Array();
+            Op[0] = new Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+            Op[1] = new Array(1, 2, 3, 4, 0, 6, 7, 8, 9, 5);
+            Op[2] = new Array(2, 3, 4, 0, 1, 7, 8, 9, 5, 6);
+            Op[3] = new Array(3, 4, 0, 1, 2, 8, 9, 5, 6, 7);
+            Op[4] = new Array(4, 0, 1, 2, 3, 9, 5, 6, 7, 8);
+            Op[5] = new Array(5, 9, 8, 7, 6, 0, 4, 3, 2, 1);
+            Op[6] = new Array(6, 5, 9, 8, 7, 1, 0, 4, 3, 2);
+            Op[7] = new Array(7, 6, 5, 9, 8, 2, 1, 0, 4, 3);
+            Op[8] = new Array(8, 7, 6, 5, 9, 3, 2, 1, 0, 4);
+            Op[9] = new Array(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+
+            var Inv = new Array(0, 4, 3, 2, 1, 5, 6, 7, 8, 9);
+ 
+
+         function compute() {
+             var a = "x" + reverse_str(document.form.num.value);
+             var check = 0;
+             for (var i = 1; i < a.length; i++)
+                 check = Op[check][F[i % 8][a.charAt(i)]];
+             document.form.num.value = document.form.num.value + Inv[check];
+         }
+
+
+
+         function Est_Verhoeff(Valeur) {
+
+           
+             var a = reverse_str(Valeur);
+             var check = 0;
+             for (var i = 0; i < a.length; i++)
+                 check = Op[check][F[i % 8][a.charAt(i)]];
+
+             if (check != 0) return false;
+             return true;
+         }
+
+
+         function reverse_str(str) {
+             var rev = "";
+             for (var i = str.length - 1; i >= 0; i--)
+                 rev = rev + str.charAt(i);
+             return rev;
+         }
+//********************************************
+
+
+         function Est_IDCS(Valeur) {
+
+             //**************10 digits/Ne commence pas par 1
+             reg = new RegExp("^[2-9][0-9]{9}$", 'g');
+             if (!reg.test(Valeur)) return false;
+             //alert("0");
+             //**************Les 5 premiers chiffres sont différents des 5 derniers
+             //if (Valeur.substr(0,5)==Valeur.substr(5,5)) return false;
+             reg = new RegExp("^([0-9]{5})(\\1)$", 'g');
+             if (reg.test(Valeur)) return false;
+             //alert("1");
+             //**************Les 5 premiers chiffres sont différents aux 5 derniers inversés
+             //if (Valeur.substr(0,5)==reverse_str(Valeur.substr(5,5))) return false;
+             reg = new RegExp("^([0-9])([0-9])([0-9])([0-9])([0-9])(\\5)(\\4)(\\3)(\\2)(\\1)$", 'g');
+             if (reg.test(Valeur)) return false;
+             //alert("2");
+             //**************Il  ne contient pas 3 mêmes digits adjacents (5788895125)
+             if (Valeur.indexOf("000") >= 0 || Valeur.indexOf("111") >= 0 || Valeur.indexOf("222") >= 0 || Valeur.indexOf("333") >= 0
+             || Valeur.indexOf("444") >= 0 || Valeur.indexOf("555") >= 0 || Valeur.indexOf("666") >= 0 || Valeur.indexOf("777") >= 0 || Valeur.indexOf("888") >= 0 || Valeur.indexOf("999") >= 0) return false;
+             //alert("3");
+             //**************Il ne contient pas le même numéro répété 5 fois (2323232323)
+             //if (Valeur.replaceAll(Valeur.substr(0, 2), "").length==0) return false;
+             reg = new RegExp("^([0-9]{2})(\\1){4}$", 'g');
+             if (reg.test(Valeur)) return false;
+             //alert("4");
+             //**************Il n’est pas un chiffre cyclique ascendant ou descendant (5678901234 ou 7654321098)
+             var Est_Erreur = true;
+             //var Inverse = Valeur.split("").reverse().join("");
+             for (let i = 0; i < Valeur.length-1; i++) {
+                 if (((parseInt(Valeur.charAt(i)) + 1) % 10) != parseInt(Valeur.charAt(i + 1)) && ((parseInt(Valeur.charAt(9 - i)) + 1) % 10) != parseInt(Valeur.charAt(8-i))) {
+                     Est_Erreur = false;
+                     break;
+                 }
+             }
+
+             if (Est_Erreur == true) return false;
+             //if (
+             //((parseInt(Valeur.charAt(0))+1) % 10) == parseInt(Valeur.charAt(1)) && ((parseInt(Valeur.charAt(1))+1) % 10) == parseInt(Valeur.charAt(2)) && ((parseInt(Valeur.charAt(2))+1) % 10) == parseInt(Valeur.charAt(3)) &&
+             //    ((parseInt(Valeur.charAt(3)) + 1) % 10) == parseInt(Valeur.charAt(4)) && ((parseInt(Valeur.charAt(4)) + 1) % 10) == parseInt(Valeur.charAt(5))
+             //    && ((parseInt(Valeur.charAt(5)) + 1) % 10) == parseInt(Valeur.charAt(6))
+             //    && ((parseInt(Valeur.charAt(6)) + 1) % 10) == parseInt(Valeur.charAt(7))
+             //    && ((parseInt(Valeur.charAt(7)) + 1) % 10) == parseInt(Valeur.charAt(8))
+             //    && ((parseInt(Valeur.charAt(8)) + 1) % 10) == parseInt(Valeur.charAt(9))
+             //) return false;
+             //alert("5");
+             //**************Le dernier digit est un chiffre de contrôle à la base de l’application de l’algorithme verhoeff sur les 9 digits
+             if (!Est_Verhoeff(Valeur)) return false;
+             //alert("6");
+             //***********
+            
+             return true;
+
+         }
+
+         function Existe_Controle(nomcontrole) {
+             var Control = document.getElementById(nomcontrole);
+             if (Control) { return true; } else { return false; }
+         }
+
+
+
+function Est_Double_IDCS(NomControle, Valeur) {
+            var Nom_IDCS = Existe_Controle("ctl00_ContentPlaceHolder1_Txt_IDCS") ? "ctl00_ContentPlaceHolder1_Txt_IDCS" : "ctl00_ContentPlaceHolder1_Lab_IDCS";
+            var Valeur_IDCS = document.getElementById(Nom_IDCS).value ;
+
+             if (NomControle != Nom_IDCS && Valeur_IDCS == Valeur) { return true; }
+             if (NomControle != "ctl00_ContentPlaceHolder1_Txt_IDCS_Conjoint" && Existe_Controle("ctl00_ContentPlaceHolder1_Txt_IDCS_Conjoint") && document.getElementById("ctl00_ContentPlaceHolder1_Txt_IDCS_Conjoint").value == Valeur) { return true; }
+             //******************************
+             indicecontrole = 2;
+             ListeNomControle = "ctl00_ContentPlaceHolder1_GridView_Liste_Enfants_ctl" + (indicecontrole <= 9 ? "0" + indicecontrole.toString() : indicecontrole.toString()) + "_Lab_IDCS_Enfant";
+
+             
+
+             while (Existe_Controle(ListeNomControle)) {
+                
+                 if (document.getElementById(ListeNomControle).innerHTML == Valeur) {
+                     return true;
+                     break;
+                 }
+                 indicecontrole++;
+                 ListeNomControle = "ctl00_ContentPlaceHolder1_GridView_Liste_Enfants_ctl" + (indicecontrole <= 9 ? "0" + indicecontrole.toString() : indicecontrole.toString()) + "_Lab_IDCS_Enfant";
+             }
+
+
+         }
+
+
+
+         function Controle_IDCS(sender, args) {
+             var NomControle = (sender.id).replace("CustomValidator_", "");
+             var Valeur = document.getElementById(NomControle).value;
+
+             //args.IsValid = Verifier_IDCS(Valeur);
+
+             if (!Est_IDCS(Valeur)) {
+                 sender.innerHTML = "المعرف الرقمي غير صحيح.";
+                 sender.errormessage = "المعرف الرقمي غير صحيح.";
+                 args.IsValid = false;
+                 
+                 return;
+             }
+
+
+
+             if (Est_Double_IDCS(NomControle,Valeur)) {
+                 sender.innerHTML = "المعرف الرقمي مكرر.";
+                 sender.errormessage = "المعرف الرقمي مكرر.";
+                 args.IsValid = false;
+                  
+                 return;
+             }
+
+
+             args.IsValid = true;
+
+
+             
+
+         }
+
+
+
+         //*****************************************************
+
+         function Controle_Dates(sender, args) {
+
+             var Source = sender.id;
+             var Est_Date = Source.slice(Source.length - 4, Source.length);
+
+             var jour = (Est_Date == "DNDT" ? $('#Cbo_Jours_Naiss option:selected').val() : (Est_Date == "DNCT" ? $('#Cbo_Jours_Naiss_Conjoint option:selected').val() : (Est_Date == "DNEA" ? $('#Cbo_Jours_Naiss_Enfant_Ajt option:selected').val() : $('#Cbo_Jours_Naiss_Enfant_Mod option:selected').val())));
+             var mois = (Est_Date == "DNDT" ? $('#Cbo_Mois_Naiss option:selected').val() : (Est_Date == "DNCT" ? $('#Cbo_Mois_Naiss_Conjoint option:selected').val() : (Est_Date == "DNEA" ? $('#Cbo_Mois_Naiss_Enfant_Ajt option:selected').val() : $('#Cbo_Mois_Naiss_Enfant_Mod option:selected').val())));
+             var annee = (Est_Date == "DNDT" ? $('#Cbo_Annees_Naiss option:selected').val() : (Est_Date == "DNCT" ? $('#Cbo_Annees_Naiss_Conjoint option:selected').val() : (Est_Date == "DNEA" ? $('#Cbo_Annees_Naiss_Enfant_Ajt option:selected').val() : $('#Cbo_Annees_Naiss_Enfant_Mod option:selected').val())));
+
+             var Comp_Msg = (Est_Date == "DNDT" ? " لصاحب(ة) الطلب " : (Est_Date == "DNCT" ? " للزوج(ة) " : " للطفل "));
+
+
+
+             if ((jour == 0 || mois == 0 || annee == 0)) { sender.innerHTML = "تاريخ الإزدياد غير محدد."; sender.errormessage = "تاريخ الإزدياد" + Comp_Msg + "غير محدد."; args.IsValid = false; return; }
+
+
+             //****************************
+             var Date_Saisie = (jour == 9999 ? "01" : jour) + '/' + (mois == 9999 ? "01" : mois) + '/' + annee;
+            
+
+             if ((jour != 9999 && mois == 9999) || !isDate(Date_Saisie, '/', 0, 1, 2) || Comparerdate(Date_Saisie, get_today(), 0, "Inf")) { sender.innerHTML = "تاريخ الإزدياد غير صحيح."; sender.errormessage = "تاريخ الإزدياد" + Comp_Msg + "غير صحيح."; args.IsValid = false; return; }
+
+
+
+             if (Est_Date == "DNDT" && Comparerdate(Date_Saisie, get_today(), 18,"Inf")) { sender.innerHTML = "صاحب الطلب لا يبلغ 18 سنة"; sender.errormessage = "صاحب الطلب لا يبلغ 18 سنة"; args.IsValid = false; return; }
+
+             args.IsValid = true;
+
+
+
+
+         }
