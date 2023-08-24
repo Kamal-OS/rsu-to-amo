@@ -145,12 +145,20 @@ input[type="checkbox"]:checked+._slider {
 /* row after toggle switch */
 
 rsu-members-detail table > tbody tr:hover > td {
-    background-color: skyblue !important;
+    background-color: skyblue;
 }
 
 rsu-members-detail table > tbody tr.disabled > td {
     background-color: darkgray !important;
 }
+rsu-members-detail table>tbody tr>td.alert {
+    background-color: hsl(0, 79%, 80%);
+}
+
+rsu-members-detail table>tbody tr>td.alert:hover {
+    background-color: hsl(0, 79%, 72%);
+}
+
 
 /* Custom alert */
 

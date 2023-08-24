@@ -115,8 +115,8 @@
                 const cells = row.querySelectorAll("td")
 
                 // Add cell for gender options
-                const thirdCol = cells[2]
-                const genderOptions = thirdCol.cloneNode(false)
+                const firstnameCell = cells[2]
+                const genderOptions = firstnameCell.cloneNode(false)
                 genderOptions.innerHTML = htmlGenderOptions
 
                 // genderOptions's radio input
@@ -137,6 +137,9 @@
 
                         updateSubmitBtn()
 
+                        // style to default when answered
+                        event.target.closest("td").classList.remove("alert")
+
                         event.preventDefault()
                         event.stopPropagation()
                     })
@@ -148,12 +151,15 @@
                     label.setAttribute("for", forAttr)
                 })
 
+                // alert style for non-answered
+                genderOptions.classList.add("alert")
+
                 // insert the genderOptions cell
-                thirdCol.insertAdjacentElement('afterend', genderOptions)
+                firstnameCell.insertAdjacentElement('afterend', genderOptions)
                 
                 // Add cell for toggle switch
-                const firstCol = cells[0]
-                const toggleSwitch = firstCol.cloneNode(false)
+                const idcsCell = cells[0]
+                const toggleSwitch = idcsCell.cloneNode(false)
                 toggleSwitch.innerHTML = htmlToggleSwitch
 
                 // toggleSwitch's checkbox input
@@ -190,7 +196,7 @@
                 })
 
                 // insert the toggleSwitch cell
-                firstCol.insertAdjacentElement('beforebegin', toggleSwitch)
+                idcsCell.insertAdjacentElement('beforebegin', toggleSwitch)
 
             })
 
