@@ -33,7 +33,7 @@ const RSU_DEMO = "/demo/demo.html"
 const RNP_URL = "https://www.rnp.ma/pre-registration-ui/#/"
 // AMO
 const AMO_URL = "https://www.amotadamon.ma/"
-const AMO_COMPLETE_URL = AMO_URL + "Demande_Reussie_Ar.aspx"
+const AMO_DOWNLOAD_URL = AMO_URL + "Demande_Reussie_Ar.aspx"
 
 // TODO: use doc UUID (docId) to prevent reinjection when laod inplace or load from cache
 let COMPLETE_ONCE = false
@@ -180,7 +180,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
     if (message.type === "amo-form-done") {
         chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-            if (tab.id === sender.tab.id && tab.url.startsWith(AMO_COMPLETE_URL) && tab.status === "complete") {
+            if (tab.id === sender.tab.id && tab.url.startsWith(AMO_DOWNLOAD_URL) && tab.status === "complete") {
                 // click the download button
                 if (await LS.getItem("autodownload")) {
                     chrome.scripting.executeScript({
