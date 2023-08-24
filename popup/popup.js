@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 })
 
+
 // collapsible
 var coll = document.getElementsByClassName("collapsible");
 for (let i = 0; i < coll.length; i++) {
@@ -26,6 +27,7 @@ for (let i = 0; i < coll.length; i++) {
   });
 }
 
+
 // demo
 document.querySelector(".demo-btn").addEventListener("click", () => {
     const demoPage = "https://kamal-os.github.io/RSU-to-AMO/demo/demo.html"
@@ -34,9 +36,8 @@ document.querySelector(".demo-btn").addEventListener("click", () => {
     })
 })
 
-/*
-** Parameters
-*/
+
+// parameters
 const inputs = document.querySelectorAll(".parameters input")
 inputs.forEach(async (input) => {
   // get and set last state from storage
@@ -49,13 +50,6 @@ inputs.forEach(async (input) => {
     const target = event.target
     const targetID = target.id.toString()
     const targetState = target.checked
-    console.log(targetState)
-    chrome.runtime.sendMessage(
-        {
-          type: targetID,
-          state: targetState
-        }
-    )
     
     // set current state in storage
     await chrome.storage.local.set({ [targetID]: targetState })

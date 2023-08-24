@@ -1,15 +1,26 @@
-// Parameters (defaults)
-const PARAMETERS = {
-    rnp_autoclick: true,
-    rsu_autoclick: false,
-    score_check: true,
-    autodownload: true,
-    autogender: true
+const LS = {
+    getAllItems: () => chrome.storage.local.get(),
+    getItem: async key => (await chrome.storage.local.get(key))[key],
+    setItem: (key, val) => chrome.storage.local.set({ [key]: val }),
+    removeItems: keys => chrome.storage.local.remove(keys),
 }
 
-// set parameters in storage to defaults
-chrome.runtime.onInstalled.addListener(async () => {
-    await chrome.storage.local.set({ ...PARAMETERS })
+// set parameters in storage
+chrome.runtime.onInstalled.addListener(async (reason) => {
+    if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
+
+        // Parameters (defaults)
+        const PARAMETERS = {
+            rnp_autoclick: true,
+            rsu_autoclick: false,
+            score_check: true,
+            autodownload: true,
+            autogender: true
+        }
+
+        await chrome.storage.local.set({ ...PARAMETERS })
+
+    }
 })
 
 /// URLS
@@ -27,7 +38,7 @@ const AMO_COMPLETE_URL = AMO_URL + "Demande_Reussie_Ar.aspx"
 // TODO: use doc UUID (docId) to prevent reinjection when laod inplace or load from cache
 let COMPLETE_ONCE = false
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     if (tab.url.startsWith(RSU_ACCOUNT_URL) || tab.url.endsWith(RSU_DEMO)) {
         // if refreshed (or reentred) recapture 'complete'
@@ -50,7 +61,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         }
 
         // Prevent RSU auto log out
-        if ((tab.url.startsWith(RSU_REGISTER_URL) || tab.url.startsWith(RSU_URL)) && PARAMETERS.rsu_autoclick) {
+        if ((tab.url.startsWith(RSU_REGISTER_URL) || tab.url.startsWith(RSU_URL)) && await LS.getItem("rsu_autoclick")) {
             if (tab.status === "complete") {
                 chrome.scripting.executeScript({
                     target: { tabId: tab.id },
@@ -68,7 +79,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     }
 
     // Prevent RNP inactive state detection (Auto-click)
-    if (tab.url.startsWith(RNP_URL) && PARAMETERS.rnp_autoclick) {
+    if (tab.url.startsWith(RNP_URL) && await LS.getItem("rnp_autoclick")) {
         if (tab.status === "complete") {
             chrome.scripting.executeScript({
                 target: { tabId: tab.id },
@@ -100,7 +111,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         })
     }
 
-    if (message.type === "rsu-auto-gender" && PARAMETERS.autogender) {
+    if (message.type === "rsu-auto-gender" && await LS.getItem("autogender")) {
         let data = await fetch("./data/female_names.json")
         const female_names = await data.json()
         data = await fetch("./data/male_names.json")
@@ -116,7 +127,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     
     if (message.type === "rsu-ui-ready" || message.type === "rsu-ui-ready-force") {
         
-        if (PARAMETERS.score_check && message.type !== "rsu-ui-ready-force") {
+        if (await LS.getItem("score_check") && message.type !== "rsu-ui-ready-force") {
             // show score alert if below the threshold
             // and skip until user respond
             let skip = await chrome.scripting.executeScript({
@@ -171,7 +182,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             if (tab.id === sender.tab.id && tab.url.startsWith(AMO_COMPLETE_URL) && tab.status === "complete") {
                 // click the download button
-                if (PARAMETERS.autodownload) {
+                if (await LS.getItem("autodownload")) {
                     chrome.scripting.executeScript({
                         target: { tabId: sender.tab.id },
                         func: () => {
@@ -199,11 +210,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             },
             world: "MAIN"
         })
-    }
-
-    // Messages from popup.js for parameters
-    if (message.type in PARAMETERS) {
-        PARAMETERS[message.type] = message.state
     }
 })
 
