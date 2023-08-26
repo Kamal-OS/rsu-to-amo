@@ -162,6 +162,11 @@ rsu-members-detail table>tbody tr>td.alert:hover {
 
 /* Custom alert */
 
+._alert._warning {
+    background-color: #FFCC00;
+    color: black
+}
+
 ._alert {
     background-color: #f44336;
     color: white;
@@ -173,8 +178,7 @@ rsu-members-detail table>tbody tr>td.alert:hover {
     font-family: Cairo, sans-serif;
     direction: rtl;
 
-    opacity: 0;
-    transition: opacity 0.6s;
+    visibility: hidden;
     
     position: fixed;
     top: 0;
@@ -195,11 +199,18 @@ rsu-members-detail table>tbody tr>td.alert:hover {
     
     float: left;
     cursor: pointer;
-    transition: 0.3s;
 }
 
 ._closebtn:hover {
     color: black;
+}
+
+._alert._warning ._closebtn {
+    color: black;
+}
+
+._alert._warning ._closebtn:hover {
+    color: white;
 }
 
 ._skipbtn {

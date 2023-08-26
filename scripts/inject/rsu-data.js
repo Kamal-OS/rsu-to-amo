@@ -190,10 +190,9 @@
 
     console.log(families)
 
-    chrome.runtime.sendMessage(
-        {
-            type: "rsu-data-ready",
-            data: families
-        }
-    )
+    // turn it into array
+    const arrayFamilies = Object.values(families).flat().filter(family => family)
+
+    return arrayFamilies
+    
 })()

@@ -31,31 +31,37 @@
         </label>
     `
 
-    // custom alert for score
+    // custom alerts for score
     const htmlAlert = `
         <div class="_alert">
-            <span class="_closebtn" onclick="this.parentElement.style.opacity=0">&times;</span>
+            <span class="_closebtn" onclick="this.parentElement.style.visibility='hidden'">&times;</span>
             <button class="_skipbtn">تجاهل</button>
             <p><strong>تنبيه!</strong> مؤشر الأسرة أقل من العتبة 9,3264284</p>
         </div>
     `
+    const htmlWarning = `
+        <div class="_alert _warning">
+            <span class="_closebtn" onclick="this.parentElement.style.visibility='hidden'">&times;</span>
+            <p><strong>تنبيه!</strong> مؤشر الأسرة أقل من العتبة 9,3264284</p>
+        </div>
+    `
 
-    // Insert the alert
+    // Insert the alerts
     document.body.insertAdjacentHTML('beforeend', htmlAlert)
-    const alert = document.querySelector("._alert")
-    const alertSkipBtn = alert.querySelector("button")
+    document.body.insertAdjacentHTML('beforeend', htmlWarning)
+    const alertSkipBtn = document.querySelector("._alert button")
     if (alertSkipBtn) {
         alertSkipBtn.addEventListener("click", () => {
-                chrome.runtime.sendMessage(
-                    {
-                        type: "rsu-ui-ready-force"
-                    }
-                )
-                alert.style.opacity = 0
-            })
+            chrome.runtime.sendMessage(
+                {
+                    type: "rsu-ui-ready-force"
+                }
+            )
+            alertSkipBtn.parentElement.style.visibility = 'hidden'
+        })
     }
     
-    
+
     const table = document.querySelector("rsu-members-detail table")
     const headers = table.querySelectorAll("thead tr th")
     
@@ -76,7 +82,6 @@
     
     // Make gender header
     makeHeader(2, "النوع", "after")
-    
 
     await new Promise((resolve) => {
         // insert columns when atleast one row is loaded in the table

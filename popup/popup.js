@@ -42,9 +42,8 @@ const inputs = document.querySelectorAll(".parameters input")
 inputs.forEach(async (input) => {
   // get and set last state from storage
   const key = input.id
-  const PARAMETERS = await chrome.storage.local.get([key])
-  input.checked = PARAMETERS[key]
-  console.log(PARAMETERS)
+  const state = (await chrome.storage.local.get(key))[key]
+  input.checked = state
   // Listerners for inputs parameters
   input.addEventListener("change", async (event) => {
     const target = event.target

@@ -25,10 +25,11 @@
 
     "content_scripts": [
         {
-            "js": ["./scripts/content/amo.js"],
             "matches": [
                 "https://*.amotadamon.ma/*"
-            ]
+            ],
+            "js": ["./scripts/content/amo.js"],
+            "css": ["./style/amo.css"]
         },
         {
             "js": ["./scripts/content/rsu.js"],

@@ -6,7 +6,7 @@ const LS = {
 }
 
 // set parameters in storage
-chrome.runtime.onInstalled.addListener(async (reason) => {
+chrome.runtime.onInstalled.addListener(async ({ reason }) => {
     if (reason === chrome.runtime.OnInstalledReason.INSTALL) {
 
         // Parameters (defaults)
@@ -15,11 +15,11 @@ chrome.runtime.onInstalled.addListener(async (reason) => {
             rsu_autoclick: false,
             score_check: true,
             autodownload: true,
-            autogender: true
+            autogender: true,
+            threshold: 9.3264284
         }
 
         await chrome.storage.local.set({ ...PARAMETERS })
-
     }
 })
 
@@ -41,7 +41,7 @@ let COMPLETE_ONCE = false
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
     if (tab.url.startsWith(RSU_ACCOUNT_URL) || tab.url.endsWith(RSU_DEMO)) {
-        // if refreshed (or reentred) recapture 'complete'
+        // if refreshed (or re-entred) recapture 'complete'
         if (COMPLETE_ONCE && tab.status === "loading") {
             COMPLETE_ONCE = false
         }
@@ -54,10 +54,12 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                 files: ["./style/rsu-ui.css"]
             })
 
-            chrome.scripting.executeScript({
+            await chrome.scripting.executeScript({
                 target: { tabId: tab.id },
                 files: ["./scripts/inject/rsu-ui.js"]
             })
+
+            isScoreBelowThreshold(tab.id, await LS.getItem("threshold"), false)
         }
 
         // Prevent RSU auto log out
@@ -104,84 +106,69 @@ var data = {
 Object.seal(data) // static object: can't add or remove properties
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    if (message.type === "amo-inject-css") {
-        await chrome.scripting.insertCSS({
-            target: { tabId: sender.tab.id },
-            files: ["./style/amo-ui.css"]
-        })
-    }
 
+    // Set gender if this option is active
     if (message.type === "rsu-auto-gender" && await LS.getItem("autogender")) {
         let data = await fetch("./data/female_names.json")
         const female_names = await data.json()
         data = await fetch("./data/male_names.json")
         const male_names = await data.json()
+        data = { female_names, male_names }
 
+        // send data to rsu.js content script
         chrome.tabs.sendMessage(sender.tab.id,
             {
                 type: "rsu-set-gender",
-                data: {female_names, male_names}
+                data: data
             }
         )
     }
-    
+
     if (message.type === "rsu-ui-ready" || message.type === "rsu-ui-ready-force") {
-        
-        if (await LS.getItem("score_check") && message.type !== "rsu-ui-ready-force") {
-            // show score alert if below the threshold
-            // and skip until user respond
-            let skip = await chrome.scripting.executeScript({
-                target: { tabId: sender.tab.id },
-                func: () => {
-                    let score = document.querySelector("rsu-score-detail .graphScore span")
-                    if (!score) return
-                    
-                    score = score.textContent
-                    score = score.replace(',', '.')
-                    score = parseFloat(score)
-                    
-                    if (score > 9.3264284) {
-                        const alert = document.querySelector("._alert")
-                        if (!alert) return
-                        alert.style.opacity = 1
 
-                        // skip
-                        return true
-                    }
+        let isExecuteScript = false
 
-                    // don't skip
-                    return false
-                }
-            })
+        if (message.type === "rsu-ui-ready-force") {
+            isExecuteScript = true
+        }
+        // score_check option is enabled
+        else if (await LS.getItem("score_check")) {
+            const isScoreGood = (await isScoreBelowThreshold(sender.tab.id, await LS.getItem("threshold")))[0].result
 
-            skip = skip[0].result
-
-            // skip
-            if (skip) return
+            if (isScoreGood) {
+                isExecuteScript = true
+            }
+        }
+        // score_check option is disabled
+        else {
+            isExecuteScript = true
         }
 
-        chrome.scripting.executeScript({
-            target: { tabId: sender.tab.id },
-            files: ["./scripts/inject/rsu-data.js"]
-        })
-    }
+        if (isExecuteScript) {
+            // get families data
+            data.families = (await chrome.scripting.executeScript({
+                target: { tabId: sender.tab.id },
+                files: ["./scripts/inject/rsu-data.js"]
+            }))[0].result
 
-    if (message.type === "rsu-data-ready") {
-        data.families = message.data
+            console.log(data.families)
 
-        // create new window
-        data.window = await chrome.windows.create({
-            focused: true
-        })
+            // create new window
+            data.window = await chrome.windows.create({
+                focused: true
+            })
 
-        // inject first family
-        insertData(true)
+            // inject first family
+            injectFamily(true)
+        }
     }
 
     if (message.type === "amo-form-done") {
+
         chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
             if (tab.id === sender.tab.id && tab.url.startsWith(AMO_DOWNLOAD_URL) && tab.status === "complete") {
-                // click the download button
+
+                // if autodownload option is enabled, click the download button
                 if (await LS.getItem("autodownload")) {
                     chrome.scripting.executeScript({
                         target: { tabId: sender.tab.id },
@@ -194,12 +181,20 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                         world: "MAIN"
                     })
                 }
-                
-                if (!data.families) return
-                
-                insertData()
+
+                if (data.families && data.families.length > 0) {
+                    chrome.tabs.sendMessage(tab.id,
+                        {
+                            type: "amo-inject-nextbtn"
+                        }
+                    )
+                }
             }
         })
+    }
+
+    if (message.type === "amo-next-family") {
+        injectFamily()
     }
 
     if (message.type === "click-add-child") {
@@ -213,34 +208,36 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
 })
 
-const insertData = (isFirst = false) => {
-    for (const [key, value] of Object.entries(data.families)) {
-        // skip null
-        if (!value || ((key === "adults" || key === "siblings") && value.length < 1)) {
-            delete data.families[key]
-            console.log(`${key} deleted`)
-            continue
-        }
+const isScoreBelowThreshold = (tabId, threshold, isAlert = true) => {
+    return chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: (threshold, isAlert) => {
+            let score = document.querySelector("rsu-score-detail .graphScore span")
+            if (!score) return
 
-        // array
-        if (key === "adults" || key === "siblings") {
-            injectData(data.families[key].shift(), isFirst)
-            console.log(`${key} injected`)
-        }
-        // single
-        else {
-            injectData(data.families[key], isFirst)
-            console.log(`${key} injected`)
-            delete data.families[key]
-            console.log(`${key} deleted`)
-        }
-        break
-    }
+            score = score.textContent
+            score = score.replace(',', '.')
+            score = parseFloat(score)
+
+            // show score alert if below the threshold
+            if (score > threshold) {
+                const notif = document.querySelector(isAlert ? "._alert" : "._alert._warning")
+                if (!notif) return
+                notif.style.visibility = 'visible'
+
+                return false
+            }
+
+            return true
+        },
+        args: [ threshold, isAlert ]
+    })
 }
 
-const injectData = async (family, isFirst) => {
-    // null
-    if (!family) return
+const injectFamily = async (isFirst = false) => {
+    
+    // null or empty
+    if (!data.families || data.families.length < 1) return
 
     // create tab with AMO_URL
     const amoTab = await chrome.tabs.create({
@@ -285,6 +282,11 @@ const injectData = async (family, isFirst) => {
 
     chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         if (tab.id === amoTab.id && tab.url.startsWith(AMO_URL + "Formulaire_Inscription_Ar.aspx") && tab.status === "complete") {
+
+            // get first family and remove it
+            const family = data.families.shift()
+
+            // Send family to amo.js content script
             chrome.tabs.sendMessage(amoTab.id,
                 {
                     type: "amo-form-insert",

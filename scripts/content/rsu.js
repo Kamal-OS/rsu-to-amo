@@ -1,15 +1,22 @@
 "use strict";
 
+// normalize arabic text for easy comparison
 const normName = (name) => {
+
     let norm = name.trim()
-    if (name.substring(0, 2) === "ال") {
-        norm = name.substring(2)
-    }
-    norm = norm.replaceAll('أ', 'ا')
-    norm = norm.replaceAll('إ', 'ا')
-    norm = norm.replaceAll('آ', 'ا')
-    norm = norm.replaceAll('ث', 'ت')
+    
+    // delete "ال التعريف"
+    norm = norm.replace(/^ال/g, "")
+
+    // replace alhamza with normal one
+    norm = norm.replaceAll(/[أإآ]/g, "ا")
+
+    // replace ث with ت
+    norm = norm.replaceAll("ث", "ت")
+
+    // delete diacritics
     norm = norm.replaceAll(/َ|ً|ُ|ٌ|ّ|ٍ|ِ|ْ|ٰ|ٓ|ـ/g, "")
+
     return norm
 }
 
