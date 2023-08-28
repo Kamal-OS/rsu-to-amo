@@ -234,19 +234,19 @@ const isScoreBelowThreshold = (tabId, threshold, isAlert = true) => {
     })
 }
 
-const injectFamily = async (isFirst = false) => {
+const injectFamily = async (isActive = true) => {
     
     // null or empty
     if (!data.families || data.families.length < 1) return
 
     // create tab with AMO_URL
     const amoTab = await chrome.tabs.create({
-        active: isFirst,
+        active: isActive,
         url: AMO_URL,
         windowId: data.window.id
     })
 
-    if (isFirst) {
+    if (isActive) {
         // create a tab group
         data.groupId = await chrome.tabs.group({
             tabIds: amoTab.id,
@@ -264,7 +264,7 @@ const injectFamily = async (isFirst = false) => {
         chrome.tabs.remove(data.window.tabs[0].id)
     }
 
-    if (!isFirst) {
+    if (!isActive) {
         // add tab to the group
         await chrome.tabs.group({
             tabIds: amoTab.id,
