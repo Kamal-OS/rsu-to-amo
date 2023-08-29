@@ -225,6 +225,11 @@ const isScoreBelowThreshold = (tabId, threshold, isAlert = true) => {
                 if (!notif) return
                 notif.style.visibility = 'visible'
 
+                // hide after 3s
+                setTimeout(() => {
+                    notif.style.visibility = 'hidden'
+                }, 7000)
+
                 return false
             }
 

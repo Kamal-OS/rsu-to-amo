@@ -8,6 +8,11 @@ const htmlPopupBox = `
                 <h1>رب الأسرة في السجل الاجتماعي الموحد هي الزوجة</h1>
                 <label>ماذا تريدنا أن نفعل (كمال ^_^)</label>
                 <div class="btns">
+                    <button class="btn0 _popup" value="nothing">إغلاق
+                        <span class="_popuptext">
+                            اختر هذا الخيار ان كان الزوج (ذكر) في حالة لاتسمح لأن يكون رب الأسرة (إعاقة مثلاً).<br>
+                        </span>
+                    </button>
                     <button class="btn1 _popup" value="swap-gender">تعديل الجنس فقط
                         <span class="_popuptext">
                             سيتم تبديل جنس رب الأسرة مع جنس الزوج(ة) فقط.<br>

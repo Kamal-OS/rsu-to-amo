@@ -43,7 +43,8 @@
 }
 
 ._popup_box .btns .btn1,
-._popup_box .btns .btn2 {
+._popup_box .btns .btn2,
+._popup_box .btns .btn0 {
     font-size: .9rem;
 
     background: #e38e0f;
@@ -60,6 +61,17 @@
     background: #2d5893;
 }
 
+._popup_box .btns .btn0 {
+    margin-left: 20px;
+    background: #929292;
+    float: right;
+}
+
+._popup_box .btns .btn0:hover {
+    transition: .5s;
+    background: #999999;
+}
+
 ._popup_box .btns .btn1:hover {
     transition: .5s;
     background: #c57907;
@@ -69,6 +81,7 @@
     transition: .5s;
     background: #284d81;
 }
+
 
 /**** Popup on hover ****/
 

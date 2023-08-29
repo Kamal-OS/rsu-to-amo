@@ -42,7 +42,7 @@
     const htmlWarning = `
         <div class="_alert _warning">
             <span class="_closebtn" onclick="this.parentElement.style.visibility='hidden'">&times;</span>
-            <p><strong>تنبيه!</strong> مؤشر الأسرة أقل من العتبة 9,3264284</p>
+            <p><strong>تنبيه!</strong> مؤشر الأسرة أقل من العتبة <strong>9,3264284</strong> <span class="_sub">(رسالة من تطبيق امو، المرجو التجاهل ان تغير المؤشر مستقبلاً)</span></p>
         </div>
     `
 

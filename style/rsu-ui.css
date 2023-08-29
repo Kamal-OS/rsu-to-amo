@@ -167,6 +167,10 @@ rsu-members-detail table>tbody tr>td.alert:hover {
     color: black
 }
 
+._alert span._sub {
+    color: #4c4c4c;
+}
+
 ._alert {
     background-color: #f44336;
     color: white;
