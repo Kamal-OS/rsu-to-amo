@@ -1,53 +1,46 @@
 {
-    "manifest_version": 3,
-    "name": "RSU to AMO",
-    "description": "Autofill AMO form using RSU account",
-    "version": "2.0",
-    
-    "permissions": [
-        "tabs",
-        "scripting",
-        "tabGroups",
-        "storage"
-    ],
+  "manifest_version": 3,
+  "name": "RSU to AMO",
+  "description": "Autofill AMO form using RSU account",
+  "version": "2.0",
 
-    "host_permissions": [
-        "https://*.rsu.ma/rsu/*",
-        "https://*.github.io/*/demo/demo.html",
-        "https://*.rnp.ma/pre-registration-ui/#/*",
-        "https://*.amotadamon.ma/*"
-    ],
+  "permissions": ["tabs", "scripting", "tabGroups", "storage"],
 
-    "background": {
-        "service_worker": "background.js",
-        "type": "module"
+  "host_permissions": [
+    "https://*.rsu.ma/rsu/*",
+    "https://*.github.io/*/demo/demo.html",
+    "https://*.rnp.ma/pre-registration-ui/#/*",
+    "https://*.amotadamon.ma/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://*.amotadamon.ma/*"],
+      "js": ["./scripts/content/amo.js"],
+      "css": ["./style/amo.css"]
     },
-
-    "content_scripts": [
-        {
-            "matches": [
-                "https://*.amotadamon.ma/*"
-            ],
-            "js": ["./scripts/content/amo.js"],
-            "css": ["./style/amo.css"]
-        },
-        {
-            "js": ["./scripts/content/rsu.js"],
-            "matches": [
-                "https://*.rsu.ma/rsu/*",
-                "https://*.github.io/RSU-to-AMO/demo/demo.html"
-            ]
-        }
-    ],
-
-    "action": {
-        "default_icon": {
-            "16": "./assets/icon16.png",
-            "24": "./assets/icon24.png",
-            "32": "./assets/icon32.png",
-            "48": "./assets/icon48.png",
-            "128": "./assets/icon128.png"
-        },
-        "default_popup": "./popup/popup.html"
+    {
+      "js": ["./scripts/content/rsu.js"],
+      "matches": [
+        "https://*.rsu.ma/rsu/*",
+        "https://*.github.io/rsu-to-amo/demo/demo.html"
+      ]
     }
+  ],
+
+  "action": {
+    "default_icon": {
+      "16": "./assets/icon16.png",
+      "24": "./assets/icon24.png",
+      "32": "./assets/icon32.png",
+      "48": "./assets/icon48.png",
+      "128": "./assets/icon128.png"
+    },
+    "default_popup": "./popup/popup.html"
+  }
 }
